@@ -7,9 +7,9 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Inicializar o projeto com Next.js e TypeScript estrito.
 - [x] Configurar Git, branch `main` e repositório remoto.
 - [x] Adicionar `lucide-react` como biblioteca de ícones.
-- [ ] Configurar Prisma com SQLite.
-- [ ] Criar `.env.example` e seed com usuário de demonstração.
-- [ ] Definir modelos `User` e `Appointment`.
+- [x] Configurar Prisma com SQLite.
+- [x] Criar `.env.example` e seed com usuário de demonstração.
+- [x] Definir modelos `User` e `Appointment`.
 
 ## Autenticação
 
