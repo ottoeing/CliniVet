@@ -19,11 +19,11 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 
 ## Regras de agendamento
 
-- [ ] Centralizar tipos e status: `Agendado`, `Coletado` e `Cancelado`.
-- [ ] Validar campos obrigatórios.
-- [ ] Bloquear data/hora passada.
-- [ ] Bloquear dois agendamentos com status `Agendado` no mesmo horário.
-- [ ] Garantir que as validações sejam executadas no servidor.
+- [x] Centralizar tipos e status: `Agendado`, `Coletado` e `Cancelado`.
+- [x] Validar campos obrigatórios.
+- [x] Bloquear data/hora passada.
+- [x] Bloquear dois agendamentos com status `Agendado` no mesmo horário.
+- [x] Garantir que as validações sejam executadas no servidor.
 
 ## Interface da agenda
 
