@@ -8,12 +8,14 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Configurar Git, branch `main` e repositório remoto.
 - [x] Adicionar `lucide-react` como biblioteca de ícones.
 - [x] Configurar Prisma com SQLite.
+- [x] Preparar o arquivo SQLite antes de aplicar migrações em uma instalação limpa no Windows.
 - [x] Criar `.env.example` e seed com usuário de demonstração.
 - [x] Definir modelos `User` e `Appointment`.
 
 ## Autenticação
 
 - [x] Criar login por e-mail e senha.
+- [x] Rejeitar e-mail com hífen imediatamente antes do `@`, inclusive em requisições diretas.
 - [x] Implementar sessão e logout.
 - [x] Proteger as rotas da agenda.
 - [x] Criar cards demonstrativos para cada conta recém-criada.
@@ -60,12 +62,13 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Remover a listagem duplicada abaixo da visualização diária no desktop.
 - [x] Ancorar o seletor de data do formulário ao respectivo campo.
 - [x] Dar espaço ao título do mês e usar inicial maiúscula nos seletores de data.
-- [ ] Revisar responsividade para celular e desktop.
+- [x] Revisar visualmente calendário, filtros e modal em celular e desktop.
 
 ## Qualidade e entrega
 
-- [ ] Testar manualmente login, filtros, criação, edição e cancelamento.
+- [x] Testar login, filtros e modal em navegador; exercitar criação, edição e cancelamento pela API compilada.
 - [x] Adicionar testes automatizados para credenciais, campos, data e conflito, com teste de integração da API.
+- [x] Detectar mutantes nas regras de e-mail, senha, campos, data e status.
 - [x] Escrever README de execução, decisões e credenciais de demonstração.
 - [x] Preencher a seção "Uso de IA" apenas com evidências reais do desenvolvimento.
 - [x] Conferir variáveis de ambiente e ausência de segredos no Git.

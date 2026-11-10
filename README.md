@@ -48,11 +48,11 @@ Em seguida, prepare o banco e inicie a aplicação:
 
 ```powershell
 npm run db:generate
-npx prisma migrate deploy
+npm run db:setup
 npm run dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000) e crie uma conta em **Cadastro**. O banco será criado em `prisma/dev.db`, que não é versionado. Para usar outra porta, execute `npm run dev -- -p 3001` e abra `http://localhost:3001`.
+Abra [http://localhost:3000](http://localhost:3000) e crie uma conta em **Cadastro**. `db:setup` prepara o arquivo SQLite e aplica as migrações; o banco fica em `prisma/dev.db` e não é versionado. Para usar outra porta, execute `npm run dev -- -p 3001` e abra `http://localhost:3001`.
 
 ### Conta de demonstração opcional
 
@@ -102,25 +102,26 @@ As rotas de coletas exigem sessão. O modelo está em `prisma/schema.prisma`; as
 ```powershell
 npm run lint
 npx tsc --noEmit
-npx tsx --test tests/validation.test.ts
+npm run test:unit
+npm run test:mutation
 npm run build
 ```
 
 Para testar os fluxos da API, inicie a aplicação em outro terminal e execute:
 
 ```powershell
-node --env-file=.env tests/api-smoke.mjs
+npm run test:api
 ```
 
-O teste de API usa contas temporárias e as remove ao final. Se o servidor estiver em outra porta, defina `CLINIVET_TEST_URL` antes de executar o teste (por exemplo, `http://localhost:3001`).
+O teste de API usa contas temporárias e as remove ao final. Se o servidor estiver em outra porta, defina `CLINIVET_TEST_URL` antes de executar o teste (por exemplo, `http://localhost:3001`). O teste de mutação altera temporariamente cópias isoladas das regras de validação e exige que os testes detectem cada alteração. Ele não cobre toda a aplicação.
 
-A [validação do teste prático](docs/VALIDACAO_DO_TESTE.md) registra o que foi conferido e o que ainda requer revisão visual em navegador. O [plano de execução](docs/PLANO_DE_EXECUCAO.md) acompanha as atividades concluídas.
+A [validação do teste prático](docs/VALIDACAO_DO_TESTE.md) registra as verificações em código, API e navegador, além dos diferenciais pendentes. O [plano de execução](docs/PLANO_DE_EXECUCAO.md) acompanha as atividades concluídas.
 
 ## Decisões e limites atuais
 
 - A aplicação reúne interface e API no Next.js para reduzir a configuração local.
 - O SQLite atende à execução local do teste. Para uso com múltiplas instâncias, seria preciso escolher um banco compartilhado e proteger a regra de conflito contra gravações simultâneas.
-- Ainda falta concluir a revisão manual dos fluxos e dos tamanhos de tela. Não há versão publicada nem iniciador `.exe` versionado neste repositório.
+- A interface foi revisada no computador e no celular, e os fluxos de dados foram exercitados pela API. Não há versão publicada nem iniciador `.exe` versionado neste repositório.
 
 ## Uso de IA
 
@@ -134,4 +135,8 @@ A [validação do teste prático](docs/VALIDACAO_DO_TESTE.md) registra o que foi
 4. “tá faltando o botão de ver mais no dia 12, ocultou uma tarefa”.
 5. “o botão de ver mais só deve aparecer quando o grid nao comportar mais tarefas”.
 
-**Revisões feitas a partir dos resultados.** A entrada manual de horário passou a ser formatada e validada. O limite de eventos visíveis no mês deixou de ser fixo e passou a considerar o espaço disponível na célula. O usuário escolheu Next.js full stack, pediu `lucide-react`, definiu a disposição do calendário e orientou o uso pragmático de KISS, YAGNI e DRY com commits pequenos.
+**Erros encontrados na implementação assistida por IA.** A entrada manual de horário produzia uma data inválida; a entrada passou a ser formatada e validada antes do envio. O primeiro limite de eventos do mês ocultava uma coleta sem acesso; uma revisão posterior mostrava “Ver mais” cedo demais. A quantidade visível passou a considerar a altura da célula.
+
+**Decisões do usuário.** A escolha de Next.js full stack, SQLite local, `lucide-react`, grade contínua do calendário e commits pequenos veio das revisões do usuário. Para manter o escopo simples, as regras de agendamento ficaram em `src/lib/appointments.ts` e o formulário de criar e editar é compartilhado.
+
+**Evolução.** Para múltiplas instâncias, eu migraria para um banco compartilhado e protegeria o conflito de horário em uma operação transacional. Ampliaria os testes de interface e a cobertura de mutação para fluxos de autenticação e persistência. Separaria configuração e implantação por ambiente, com gestão de segredos fora do repositório.
