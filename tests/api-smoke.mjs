@@ -35,7 +35,17 @@ try {
 
   const initial = await request("/api/appointments", "GET", undefined, firstCookie);
   assert.equal(initial.status, 200);
-  assert.ok(initial.data.appointments.length >= 8);
+  assert.ok(initial.data.appointments.length >= 20);
+  const recordsPerDay = new Map();
+  for (const item of initial.data.appointments) {
+    const day = new Date(item.scheduledAt).toDateString();
+    recordsPerDay.set(day, (recordsPerDay.get(day) ?? 0) + 1);
+  }
+  assert.ok(Math.max(...recordsPerDay.values()) >= 10);
+  const scheduledTimes = initial.data.appointments.filter((item) => item.status === "AGENDADO").map((item) => item.scheduledAt);
+  assert.equal(new Set(scheduledTimes).size, scheduledTimes.length);
+  assert.equal((await request("/api/auth/login", "POST", { email: firstEmail, password })).status, 200);
+  assert.equal((await request("/api/appointments", "GET", undefined, firstCookie)).data.appointments.length, initial.data.appointments.length);
 
   const future = new Date(Date.now() + 40 * 86_400_000);
   future.setHours(17, 45, 0, 0);
@@ -76,7 +86,7 @@ try {
 
   assert.equal((await request("/api/auth/logout", "POST", undefined, firstCookie)).status, 200);
   assert.equal((await request("/api/appointments")).status, 401);
-  console.log("Fluxos de autenticação, filtros, criação, edição, cancelamento e isolamento passaram.");
+  console.log("Autenticação, 20 exemplos por conta, mais de 10 em um dia, filtros, criação, edição, cancelamento e isolamento passaram.");
 } finally {
   await prisma.user.deleteMany({ where: { email: { in: [firstEmail, secondEmail] } } });
   await prisma.$disconnect();
