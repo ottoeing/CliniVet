@@ -54,6 +54,17 @@ try {
   const initial = await request("/api/appointments", "GET", undefined, firstCookie);
   assert.equal(initial.status, 200);
   assert.ok(initial.data.appointments.length >= 20);
+  const firstPage = await request("/api/appointments?page=1&pageSize=2", "GET", undefined, firstCookie);
+  const secondPage = await request("/api/appointments?page=2&pageSize=2", "GET", undefined, firstCookie);
+  assert.equal(firstPage.status, 200);
+  assert.equal(firstPage.data.appointments.length, 2);
+  assert.equal(firstPage.data.total, initial.data.appointments.length);
+  assert.equal(firstPage.data.page, 1);
+  assert.equal(firstPage.data.pageSize, 2);
+  assert.equal(firstPage.data.totalPages, Math.ceil(initial.data.appointments.length / 2));
+  assert.deepEqual([...firstPage.data.appointments, ...secondPage.data.appointments].map((item) => item.id), initial.data.appointments.slice(0, 4).map((item) => item.id));
+  assert.equal((await request("/api/appointments?page=0", "GET", undefined, firstCookie)).status, 400);
+  assert.equal((await request("/api/appointments?pageSize=51", "GET", undefined, firstCookie)).status, 400);
   assert.deepEqual(
     initial.data.appointments.map((item) => item.scheduledAt),
     initial.data.appointments.map((item) => item.scheduledAt).sort(),
@@ -95,6 +106,10 @@ try {
   const created = await request("/api/appointments", "POST", appointment, firstCookie);
   assert.equal(created.status, 201);
   const id = created.data.appointment.id;
+  const byClinic = await request(`/api/appointments?clinic=${encodeURIComponent("clínica de teste")}&page=1&pageSize=10`, "GET", undefined, firstCookie);
+  assert.equal(byClinic.status, 200);
+  assert.ok(byClinic.data.appointments.some((item) => item.id === id));
+  assert.ok(byClinic.data.appointments.every((item) => item.clinic.toLocaleLowerCase("pt-BR").includes("clínica de teste")));
   assert.equal((await request("/api/appointments", "POST", appointment, firstCookie)).status, 400);
   assert.equal((await request(`/api/appointments/${id}`, "PATCH", { ...appointment, examType: "" }, firstCookie)).status, 400);
   assert.equal((await request(`/api/appointments/${id}`, "PATCH", undefined, firstCookie)).status, 400);
@@ -117,6 +132,7 @@ try {
   const secondCookie = secondRegistration.cookie;
   const otherAccount = await request("/api/appointments", "GET", undefined, secondCookie);
   assert.equal(otherAccount.data.appointments.some((item) => item.id === id), false);
+  assert.equal((await request(`/api/appointments?clinic=${encodeURIComponent("Clínica de teste")}&page=1`, "GET", undefined, secondCookie)).data.appointments.some((item) => item.id === id), false);
   assert.equal((await request(`/api/appointments/${id}`, "PATCH", appointment, secondCookie)).status, 404);
 
   const cancelled = await request(`/api/appointments/${id}`, "PATCH", { ...appointment, animal: "Animal editado", status: "CANCELADO" }, firstCookie);
@@ -130,7 +146,7 @@ try {
   assert.equal(logout.status, 200);
   assert.equal(logout.cookie, "clinivet_session=");
   assert.equal((await request("/api/appointments")).status, 401);
-  console.log("Autenticação, 20 exemplos por conta, mais de 10 em um dia, filtros, criação, edição, cancelamento e isolamento passaram.");
+  console.log("Autenticação, exemplos, filtros, busca, paginação, criação, edição, cancelamento e isolamento passaram.");
 } finally {
   await prisma.user.deleteMany({ where: { email: { in: [firstEmail, secondEmail] } } });
   await prisma.$disconnect();

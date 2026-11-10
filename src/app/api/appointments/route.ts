@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 
 import { getSession } from "@/lib/auth";
 import {
@@ -22,21 +23,39 @@ export async function GET(request: Request) {
   const statuses = [...new Set(searchParams.getAll("status"))].filter((status) =>
     APPOINTMENT_STATUSES.some((allowed) => allowed === status));
   const date = searchParams.get("date");
+  const clinic = searchParams.get("clinic")?.trim() ?? "";
+  if (clinic.length > 100) {
+    return NextResponse.json({ message: "A busca deve ter até 100 caracteres." }, { status: 400 });
+  }
+  const paginated = searchParams.has("page") || searchParams.has("pageSize");
+  const pageText = searchParams.get("page") ?? "1";
+  const pageSizeText = searchParams.get("pageSize") ?? "10";
+  const page = Number(pageText);
+  const pageSize = Number(pageSizeText);
+  if (paginated && (!/^[1-9]\d*$/.test(pageText) || !/^[1-9]\d*$/.test(pageSizeText)
+    || !Number.isSafeInteger(page) || page > 10000 || !Number.isSafeInteger(pageSize) || pageSize > 50)) {
+    return NextResponse.json({ message: "Paginação inválida." }, { status: 400 });
+  }
   const dateStart = date ? new Date(`${date}T00:00:00`) : null;
   const dateEnd = date ? new Date(`${date}T23:59:59.999`) : null;
 
+  const where: Prisma.AppointmentWhereInput = {
+    userId: session.userId,
+    ...(clinic ? { clinic: { contains: clinic } } : {}),
+    ...(statuses.length ? { status: { in: statuses } } : {}),
+    ...(dateStart && dateEnd && !Number.isNaN(dateStart.getTime())
+      ? { scheduledAt: { gte: dateStart, lte: dateEnd } }
+      : {}),
+  };
   const appointments = await prisma.appointment.findMany({
-    where: {
-      userId: session.userId,
-      ...(statuses.length ? { status: { in: statuses } } : {}),
-      ...(dateStart && dateEnd && !Number.isNaN(dateStart.getTime())
-        ? { scheduledAt: { gte: dateStart, lte: dateEnd } }
-        : {}),
-    },
+    where,
     orderBy: { scheduledAt: "asc" },
+    ...(paginated ? { skip: (page - 1) * pageSize, take: pageSize } : {}),
   });
 
-  return NextResponse.json({ appointments });
+  if (!paginated) return NextResponse.json({ appointments });
+  const total = await prisma.appointment.count({ where });
+  return NextResponse.json({ appointments, total, page, pageSize, totalPages: Math.ceil(total / pageSize) });
 }
 
 export async function POST(request: Request) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { CSSProperties, FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { CalendarDays, CalendarPlus, Check, ChevronLeft, ChevronRight, Columns3, Grid3X3, List, LogOut, Pencil, SlidersHorizontal, XCircle } from "lucide-react";
+import { CalendarDays, CalendarPlus, Check, ChevronLeft, ChevronRight, Columns3, Grid3X3, List, LogOut, Pencil, Search, SlidersHorizontal, X, XCircle } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { ptBR } from "react-day-picker/locale";
 import SimpleBar from "simplebar-react";
@@ -63,6 +63,15 @@ export function AgendaClient({ email }: { email: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [showForm, setShowForm] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchPage, setSearchPage] = useState(1);
+  const [searchRevision, setSearchRevision] = useState(0);
+  const [searchResults, setSearchResults] = useState<Appointment[]>([]);
+  const [searchTotal, setSearchTotal] = useState(0);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState("");
   const [showFormCalendar, setShowFormCalendar] = useState(false);
   const dateTriggerRef = useRef<HTMLButtonElement>(null);
   const dateMenuRef = useRef<HTMLDivElement>(null);
@@ -174,12 +183,44 @@ export function AgendaClient({ email }: { email: string }) {
       const data = (await response.json()) as { appointments?: Appointment[]; message?: string };
       if (!response.ok) throw new Error(data.message ?? "Não foi possível carregar a agenda.");
       setAppointments(data.appointments ?? []);
+      if (showSearch) setSearchLoading(true);
+      setSearchRevision((current) => current + 1);
     } catch (error) {
       setFetchError(error instanceof Error ? error.message : "Não foi possível carregar a agenda.");
     } finally {
       setLoading(false);
     }
-  }, [dateFilter, statusFilter]);
+  }, [dateFilter, statusFilter, showSearch]);
+
+  function openSearch() {
+    setSearchError("");
+    setSearchLoading(true);
+    setShowSearch(true);
+  }
+
+  function changeSearchPage(page: number) {
+    setSearchError("");
+    setSearchLoading(true);
+    setSearchPage(page);
+  }
+
+  useEffect(() => {
+    if (!showSearch) return;
+    const controller = new AbortController();
+    const params = new URLSearchParams({ clinic: searchTerm, page: String(searchPage), pageSize: "10" });
+    fetch(`/api/appointments?${params}`, { signal: controller.signal })
+      .then(async (response) => {
+        const data = (await response.json()) as { appointments?: Appointment[]; total?: number; message?: string };
+        if (!response.ok) throw new Error(data.message ?? "Não foi possível buscar coletas.");
+        setSearchResults(data.appointments ?? []);
+        setSearchTotal(data.total ?? 0);
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setSearchError(error instanceof Error ? error.message : "Não foi possível buscar coletas.");
+      })
+      .finally(() => { if (!controller.signal.aborted) setSearchLoading(false); });
+    return () => controller.abort();
+  }, [showSearch, searchTerm, searchPage, searchRevision]);
 
   useEffect(() => {
     let active = true;
@@ -248,6 +289,7 @@ export function AgendaClient({ email }: { email: string }) {
 
   function startEdit(appointment: Appointment) {
     setHoveredEvent(null);
+    setShowSearch(false);
     setEditingId(appointment.id);
     setDraft({ ...appointment, scheduledAt: toLocalInputValue(appointment.scheduledAt) });
     setFormError("");
@@ -321,11 +363,27 @@ export function AgendaClient({ email }: { email: string }) {
       <header className="agenda-topbar">
         <div className="brand"><CalendarDays aria-hidden size={25} /><div><p className="eyebrow">CliniVet</p><h1>Agenda de coletas</h1></div></div>
         <div className="mobile-header-filters">
+          <button className="icon-button" aria-label="Buscar por clínica" onClick={openSearch} type="button"><Search size={18} /></button>
           <div className="filter-anchor"><button className={`icon-button${dateFilter ? " filter-active" : ""}`} aria-label="Filtrar por data" aria-expanded={openFilter === "date"} onClick={() => setOpenFilter(openFilter === "date" ? null : "date")} type="button"><CalendarDays size={18} /></button>{openFilter === "date" && <div className="filter-menu date-filter-menu"><DayPicker locale={ptBR} mode="single" selected={selectedFilterDate} onSelect={(date) => { setDateFilter(date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : ""); setOpenFilter(null); }} />{dateFilter && <button className="filter-option" onClick={() => { setDateFilter(""); setOpenFilter(null); }} type="button">Limpar filtro</button>}</div>}</div>
           <div className="filter-anchor"><button className={`icon-button${statusFilter.length ? " filter-active" : ""}`} aria-label="Filtrar por status" aria-expanded={openFilter === "status"} onClick={() => setOpenFilter(openFilter === "status" ? null : "status")} type="button"><SlidersHorizontal size={18} /></button>{openFilter === "status" && renderStatusFilter()}</div>
         </div>
         <div className="session-info"><span>{email}</span><LogoutButton icon={<LogOut aria-hidden size={18} />} iconOnly /></div>
       </header>
+      {showSearch && <div className="modal-layer">
+        <button className="modal-backdrop" aria-label="Fechar busca" onClick={() => setShowSearch(false)} type="button" />
+        <section className="panel search-panel" role="dialog" aria-modal="true" aria-labelledby="search-title">
+          <div className="search-heading"><div className="panel-title"><Search aria-hidden size={21} /><h2 id="search-title">Buscar coletas</h2></div><button className="icon-button" aria-label="Fechar busca" onClick={() => setShowSearch(false)} type="button"><X size={18} /></button></div>
+          <form className="search-form" onSubmit={(event) => { event.preventDefault(); setSearchError(""); setSearchLoading(true); setSearchPage(1); setSearchTerm(searchInput.trim()); setSearchRevision((current) => current + 1); }}>
+            <label htmlFor="clinic-search">Clínica</label>
+            <div className="search-controls"><input id="clinic-search" autoFocus maxLength={100} placeholder="Nome da clínica" value={searchInput} onChange={(event) => setSearchInput(event.target.value)} /><button className="primary-button" type="submit">Buscar</button></div>
+          </form>
+          <p className="search-count">{searchLoading ? "Buscando..." : `${searchTotal} ${searchTotal === 1 ? "coleta encontrada" : "coletas encontradas"}`}</p>
+          {searchError && <p className="state-message form-error" role="alert">{searchError}</p>}
+          {!searchLoading && !searchError && searchResults.length === 0 && <p className="state-message">Nenhuma coleta encontrada.</p>}
+          {!searchLoading && !searchError && searchResults.length > 0 && <ul className="appointment-list search-results">{searchResults.map((item) => <li className="appointment-item" key={item.id}><div className="appointment-main"><strong>{item.animal}</strong><span>{item.clinic} · {item.examType}</span><span>{toDisplayDate(item.scheduledAt)}</span></div><div className="appointment-actions"><span className={`status status-${item.status.toLowerCase()}`}>{statusLabels[item.status]}</span><button className="icon-button" aria-label={`Editar ${item.animal}`} onClick={() => startEdit(item)} type="button"><Pencil size={16} /></button>{item.status !== "CANCELADO" && <button className="icon-button danger-button" aria-label={`Cancelar ${item.animal}`} disabled={pending} onClick={() => void cancelAppointment(item)} type="button"><XCircle size={16} /></button>}</div></li>)}</ul>}
+          {searchTotal > 10 && <nav className="search-pagination" aria-label="Páginas da busca"><button className="secondary-button" disabled={searchPage === 1 || searchLoading} onClick={() => changeSearchPage(searchPage - 1)} type="button">Anterior</button><span>Página {searchPage} de {Math.ceil(searchTotal / 10)}</span><button className="secondary-button" disabled={searchPage >= Math.ceil(searchTotal / 10) || searchLoading} onClick={() => changeSearchPage(searchPage + 1)} type="button">Próxima</button></nav>}
+        </section>
+      </div>}
       {showForm && <div className="modal-layer">
         <button className="modal-backdrop" aria-label="Fechar formulário" onClick={resetForm} type="button" />
         <section className="panel form-panel" role="dialog" aria-modal="true" aria-labelledby="form-title">
@@ -362,6 +420,7 @@ export function AgendaClient({ email }: { email: string }) {
       <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="list-panel" aria-labelledby="list-title">
         <div className="list-header calendar-header">
           <div className="calendar-filter-actions">
+            <button className="icon-button" title="Buscar por clínica" aria-label="Buscar por clínica" onClick={openSearch} type="button"><Search size={18} /></button>
             <div className="filter-anchor"><button className={`icon-button${dateFilter ? " filter-active" : ""}`} title="Filtrar por data" aria-label="Filtrar por data" aria-expanded={openFilter === "date"} onClick={() => setOpenFilter(openFilter === "date" ? null : "date")} type="button"><CalendarDays size={18} /></button>
               {openFilter === "date" && <div className="filter-menu date-filter-menu"><DayPicker locale={ptBR} mode="single" selected={selectedFilterDate} onSelect={(date) => { setDateFilter(date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : ""); setOpenFilter(null); }} />{dateFilter && <button className="filter-option" onClick={() => { setDateFilter(""); setOpenFilter(null); }} type="button">Limpar filtro</button>}</div>}</div>
             <div className="filter-anchor"><button className={`icon-button${statusFilter.length ? " filter-active" : ""}`} title="Filtrar por status" aria-label="Filtrar por status" aria-expanded={openFilter === "status"} onClick={() => setOpenFilter(openFilter === "status" ? null : "status")} type="button"><SlidersHorizontal size={18} /></button>
