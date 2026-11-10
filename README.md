@@ -35,6 +35,14 @@ docker compose up --build
 
 Acesse [http://localhost:3000](http://localhost:3000). O contêiner prepara o SQLite, aplica as migrações e inicia o site. O volume `clinivet_data` preserva os dados entre reinícios. `docker compose down` encerra o serviço sem apagar o volume.
 
+Com o serviço em execução, confira os fluxos da API dentro do contêiner:
+
+```sh
+docker compose exec -T clinivet node tests/api-smoke.mjs
+```
+
+O teste cria contas temporárias no SQLite do contêiner e as remove ao terminar.
+
 ## Executar localmente
 
 ### Pré-requisitos
