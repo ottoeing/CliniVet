@@ -204,19 +204,27 @@ html, body { overflow-x: clip; }
 .calendar-week .calendar-cell { min-height: 280px; }
 .calendar-week { min-height: 0; }
 .calendar-day, .calendar-week { margin-bottom: 0; }
-.calendar-event-wrap { position: relative; min-width: 0; }
-.calendar-event-wrap .calendar-event { width: 100%; display: flex; align-items: center; gap: 5px; }
+.calendar-event-wrap { position: relative; display: flex; align-items: center; gap: 3px; min-width: 0; }
+.calendar-event-wrap .calendar-event { flex: 1; min-width: 0; display: flex; align-items: center; gap: 5px; }
 .calendar-event-wrap .event-time { flex: none; font-weight: 700; }
 .calendar-event-wrap .event-animal { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.event-action { flex: none; display: grid; place-items: center; width: 21px; height: 25px; margin-top: 6px; padding: 0; border: 0; border-radius: 5px; color: var(--primary); background: transparent; cursor: pointer; transition: background-color .2s ease, transform .2s ease; }
+.event-action:hover { background: #dcebe0; transform: translateY(-1px); }
+.event-action-danger { color: var(--danger); }
+.event-action-danger:hover { background: #f9dbd6; }
 .event-tooltip { display: none; position: absolute; z-index: 70; top: calc(100% + 5px); left: 0; width: min(275px, 85vw); padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--cream); box-shadow: 0 16px 36px rgba(20,55,42,.22); color: var(--foreground); font-size: .82rem; }
 .calendar-event-wrap:hover .event-tooltip, .calendar-event-wrap:focus-within .event-tooltip { display: grid; gap: 4px; }
 .event-tooltip p { margin: 4px 0; color: var(--muted); }
-.event-tooltip-actions { display: flex; gap: 6px; justify-content: flex-end; margin-top: 6px; }
 @media (max-width: 760px) { .event-tooltip { display: none !important; } }
 .filter-menu .rdp-root, .appointment-date-menu .rdp-root { --rdp-accent-color: var(--primary); --rdp-accent-background-color: #dcebe0; --rdp-today-color: var(--primary); }
 .filter-menu .rdp-chevron, .appointment-date-menu .rdp-chevron { fill: var(--primary); }
 .filter-menu .rdp-selected .rdp-day_button, .appointment-date-menu .rdp-selected .rdp-day_button { border-color: var(--primary); color: var(--primary); }
 .calendar-month .calendar-cell { position: relative; overflow: visible; }
+.calendar-month .calendar-cell:hover { z-index: 6; }
+.calendar-month .calendar-event-wrap .calendar-event { min-height: 25px; margin-top: 3px; padding-top: 3px; padding-bottom: 3px; }
+.calendar-month .event-action { margin-top: 3px; }
+.calendar-month .more-events { margin-top: 2px; }
+@media (max-width: 760px) { .calendar-month .calendar-event-wrap { display: none; } }
 .more-events { margin-top: 5px; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; }
 .more-events:hover { text-decoration: underline; }
 .more-events-popover { position: absolute; z-index: 60; top: 35px; left: 8px; width: min(300px, 85vw); padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--cream); box-shadow: 0 15px 35px rgba(20,55,42,.22); }
