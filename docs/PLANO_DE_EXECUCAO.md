@@ -42,6 +42,7 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Substituir o favicon padrão pela marca inclinada do CliniVet.
 - [x] Oferecer visualizações de calendário por dia, semana e mês.
 - [x] Abrir o formulário pelo botão flutuante de nova coleta.
+- [x] Manter o botão flutuante visível e clicável ao passar o mouse sobre o calendário.
 - [x] Exibir dia, semana e mês em grade contínua, com os modos no cabeçalho principal.
 - [x] Personalizar a rolagem do aplicativo.
 - [x] Ampliar os exemplos de coletas por conta e uniformizar os cartões do calendário.
