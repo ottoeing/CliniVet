@@ -38,6 +38,7 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Indicar visualmente os campos obrigatórios.
 - [x] Alinhar o indicador de foco à borda completa dos campos de autenticação.
 - [x] Aplicar interações de hover e identidade visual própria.
+- [x] Substituir o favicon padrão pela marca inclinada do CliniVet.
 - [x] Oferecer visualizações de calendário por dia, semana e mês.
 - [x] Abrir o formulário pelo botão flutuante de nova coleta.
 - [x] Exibir dia, semana e mês em grade contínua, com os modos no cabeçalho principal.
