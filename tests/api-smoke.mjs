@@ -36,6 +36,12 @@ try {
   const initial = await request("/api/appointments", "GET", undefined, firstCookie);
   assert.equal(initial.status, 200);
   assert.ok(initial.data.appointments.length >= 20);
+  const multipleStatuses = await request("/api/appointments?status=AGENDADO&status=COLETADO", "GET", undefined, firstCookie);
+  assert.equal(multipleStatuses.status, 200);
+  assert.ok(multipleStatuses.data.appointments.length > 0);
+  assert.ok(multipleStatuses.data.appointments.every((item) => item.status === "AGENDADO" || item.status === "COLETADO"));
+  assert.ok(multipleStatuses.data.appointments.some((item) => item.status === "AGENDADO"));
+  assert.ok(multipleStatuses.data.appointments.some((item) => item.status === "COLETADO"));
   const recordsPerDay = new Map();
   for (const item of initial.data.appointments) {
     const day = new Date(item.scheduledAt).toDateString();

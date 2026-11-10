@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { getSession } from "@/lib/auth";
 import {
+  APPOINTMENT_STATUSES,
   appointmentSchema,
   hasScheduledConflict,
   parseScheduledAt,
@@ -18,7 +19,8 @@ export async function GET(request: Request) {
   if (!session) return unauthorized();
 
   const { searchParams } = new URL(request.url);
-  const status = searchParams.get("status");
+  const statuses = [...new Set(searchParams.getAll("status"))].filter((status) =>
+    APPOINTMENT_STATUSES.some((allowed) => allowed === status));
   const date = searchParams.get("date");
   const dateStart = date ? new Date(`${date}T00:00:00`) : null;
   const dateEnd = date ? new Date(`${date}T23:59:59.999`) : null;
@@ -26,9 +28,7 @@ export async function GET(request: Request) {
   const appointments = await prisma.appointment.findMany({
     where: {
       userId: session.userId,
-      ...(status === "AGENDADO" || status === "COLETADO" || status === "CANCELADO"
-        ? { status }
-        : {}),
+      ...(statuses.length ? { status: { in: statuses } } : {}),
       ...(dateStart && dateEnd && !Number.isNaN(dateStart.getTime())
         ? { scheduledAt: { gte: dateStart, lte: dateEnd } }
         : {}),
