@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: clinivet
+    runtime: docker
+    plan: 0.5c-512mb
+    healthCheckPath: /login
+    envVars:
+      - key: DATABASE_URL
+        value: file:/data/clinivet.db
+      - key: SESSION_SECRET
+        generateValue: true
+    disk:
+      name: clinivet-data
+      mountPath: /data
+      sizeGB: 1

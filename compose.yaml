@@ -1,0 +1,14 @@
+services:
+  clinivet:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: file:/data/clinivet.db
+      SESSION_SECRET: ${SESSION_SECRET:?Defina SESSION_SECRET no arquivo .env}
+    volumes:
+      - clinivet_data:/data
+    restart: unless-stopped
+
+volumes:
+  clinivet_data:
