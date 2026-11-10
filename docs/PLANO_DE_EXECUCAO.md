@@ -40,6 +40,8 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Abrir o formulário pelo botão flutuante de nova coleta.
 - [x] Exibir dia, semana e mês em grade contínua, com os modos no cabeçalho principal.
 - [x] Personalizar a rolagem do aplicativo.
+- [x] Centralizar a navegação de datas e compactar visões e filtros em ícones.
+- [x] Manter o cabeçalho visível durante a rolagem.
 - [ ] Revisar responsividade para celular e desktop.
 
 ## Qualidade e entrega

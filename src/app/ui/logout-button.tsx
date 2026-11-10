@@ -3,7 +3,7 @@
 import { ReactNode, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function LogoutButton({ icon }: { icon: ReactNode }) {
+export function LogoutButton({ icon, iconOnly = false }: { icon: ReactNode; iconOnly?: boolean }) {
   const [pending, setPending] = useState(false);
   const router = useRouter();
 
@@ -19,9 +19,9 @@ export function LogoutButton({ icon }: { icon: ReactNode }) {
   }
 
   return (
-    <button className="secondary-button" disabled={pending} onClick={logout} type="button">
+    <button className="secondary-button" aria-label={pending ? "Saindo" : "Sair"} title="Sair" disabled={pending} onClick={logout} type="button">
       {icon}
-      {pending ? "Saindo..." : "Sair"}
+      {!iconOnly && (pending ? "Saindo..." : "Sair")}
     </button>
   );
 }

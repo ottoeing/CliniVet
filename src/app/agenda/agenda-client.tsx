@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, LogOut, Pencil, XCircle } from "lucide-react";
+import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Columns3, Grid3X3, List, LogOut, Pencil, SlidersHorizontal, XCircle } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import Select from "react-select";
 import SimpleBar from "simplebar-react";
@@ -61,6 +61,7 @@ export function AgendaClient({ email }: { email: string }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [showForm, setShowForm] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [view, setView] = useState<"day" | "week" | "month">("month");
   const [calendarDate, setCalendarDate] = useState(new Date());
   const weekStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate() - calendarDate.getDay());
@@ -190,8 +191,7 @@ export function AgendaClient({ email }: { email: string }) {
     <div className="agenda-layout">
       <header className="agenda-topbar">
         <div className="brand"><CalendarDays aria-hidden size={25} /><div><p className="eyebrow">CliniVet</p><h1>Agenda de coletas</h1></div></div>
-        <nav className="view-switch" aria-label="Visualização do calendário">{(["day", "week", "month"] as const).map((item) => <button key={item} aria-pressed={view === item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button">{{ day: "Dia", week: "Semana", month: "Mês" }[item]}</button>)}</nav>
-        <div className="session-info"><span>{email}</span><LogoutButton icon={<LogOut aria-hidden size={16} />} /></div>
+        <div className="session-info"><span>{email}</span><LogoutButton icon={<LogOut aria-hidden size={18} />} iconOnly /></div>
       </header>
       {showForm && <div className="modal-layer">
         <button className="modal-backdrop" aria-label="Fechar formulário" onClick={resetForm} type="button" />
@@ -227,11 +227,13 @@ export function AgendaClient({ email }: { email: string }) {
       <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="list-panel" aria-labelledby="list-title">
         <div className="list-header calendar-header">
           <div className="period-navigation"><button className="icon-button" aria-label="Período anterior" onClick={() => movePeriod(-1)} type="button"><ChevronLeft size={18} /></button><h2 id="list-title">{periodLabel}</h2><button className="icon-button" aria-label="Próximo período" onClick={() => movePeriod(1)} type="button"><ChevronRight size={18} /></button></div>
-          <button className="text-button" onClick={() => setCalendarDate(new Date())} type="button">Hoje</button>
+          <div className="calendar-actions"><button className="today-button" onClick={() => setCalendarDate(new Date())} type="button">Hoje</button><nav className="view-switch" aria-label="Visualização do calendário">{(["day", "week", "month"] as const).map((item) => { const Icon = { day: List, week: Columns3, month: Grid3X3 }[item]; return <button key={item} title={{ day: "Dia", week: "Semana", month: "Mês" }[item]} aria-label={`Visualização de ${{ day: "dia", week: "semana", month: "mês" }[item]}`} aria-pressed={view === item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button"><Icon size={18} /></button>; })}</nav></div>
         </div>
-        <div className="filters">
-          <label>Data<details className="date-picker"><summary>{selectedFilterDate ? selectedFilterDate.toLocaleDateString("pt-BR") : "Todas as datas"}</summary><DayPicker mode="single" selected={selectedFilterDate} onSelect={(date) => setDateFilter(date ? date.toISOString().slice(0, 10) : "")} /></details></label>
-          <label>Status<Select instanceId="status-filter" value={[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))].find((option) => option.value === statusFilter)} onChange={(option) => setStatusFilter(option?.value ?? "")} options={[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))]} classNamePrefix="cv-select" /></label>
+        <div className="filter-toolbar"><span>{appointments.length} {appointments.length === 1 ? "coleta" : "coletas"}</span><button className="icon-button" title="Filtros" aria-label="Abrir filtros" aria-expanded={showFilters} onClick={() => setShowFilters((open) => !open)} type="button"><SlidersHorizontal size={18} /></button>
+          {showFilters && <div className="filter-popover"><div className="filters">
+            <label>Data<details className="date-picker"><summary>{selectedFilterDate ? selectedFilterDate.toLocaleDateString("pt-BR") : "Todas as datas"}</summary><div className="date-picker-menu"><DayPicker mode="single" selected={selectedFilterDate} onSelect={(date) => setDateFilter(date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : "")} /><button className="text-button" onClick={() => setDateFilter("")} type="button">Todas as datas</button></div></details></label>
+            <label>Status<Select instanceId="status-filter" value={[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))].find((option) => option.value === statusFilter)} onChange={(option) => setStatusFilter(option?.value ?? "")} options={[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))]} classNamePrefix="cv-select" menuPortalTarget={typeof document !== "undefined" ? document.body : undefined} styles={{ menuPortal: (base) => ({ ...base, zIndex: 150 }) }} /></label>
+          </div></div>}
         </div>
         {loading && <p className="state-message">Carregando agenda...</p>}
         {fetchError && <p className="state-message form-error">{fetchError}</p>}
