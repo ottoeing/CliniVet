@@ -9,9 +9,13 @@ export function LogoutButton({ icon }: { icon: ReactNode }) {
 
   async function logout() {
     setPending(true);
-    await fetch("/api/auth/logout", { method: "POST" });
-    router.push("/login");
-    router.refresh();
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.replace("/login");
+      router.refresh();
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
