@@ -52,7 +52,7 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 ## Qualidade e entrega
 
 - [ ] Testar manualmente login, filtros, criação, edição e cancelamento.
-- [x] Adicionar testes automatizados para as regras de validação de credenciais, campos e data.
+- [x] Adicionar testes automatizados para credenciais, campos, data e conflito, com teste de integração da API.
 - [x] Escrever README de execução, decisões e credenciais de demonstração.
 - [x] Preencher a seção "Uso de IA" apenas com evidências reais do desenvolvimento.
 - [x] Conferir variáveis de ambiente e ausência de segredos no Git.

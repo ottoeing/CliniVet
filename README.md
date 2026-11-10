@@ -34,7 +34,7 @@ Abra [http://localhost:3000](http://localhost:3000). O banco fica em `prisma/dev
 
 Next.js com App Router e TypeScript, Prisma com SQLite, Zod para validação, `lucide-react` para ícones, React DayPicker para datas e SimpleBar para rolagem. Uma aplicação full stack e um banco local mantêm a configuração curta. As regras principais ficam em `src/lib/appointments.ts`; as rotas da API verificam a sessão e restringem consultas pelo `userId`. O formulário de criar e editar é compartilhado.
 
-Execute `npm run lint`, `npx tsc --noEmit` e `npx tsx --test tests/validation.test.ts` para verificar código e regras. A revisão manual dos fluxos em celular e desktop ainda deve ser concluída antes da entrega final.
+Execute `npm run lint`, `npx tsc --noEmit`, `npx tsx --test tests/validation.test.ts` e `npm run build` para verificar código, regras e compilação. Com o servidor local iniciado, `node --env-file=.env tests/api-smoke.mjs` testa a API usando contas temporárias. A revisão visual dos fluxos em celular e desktop ainda deve ser concluída antes da entrega final.
 
 ## Uso de IA
 
@@ -56,4 +56,4 @@ Execute `npm run lint`, `npx tsc --noEmit` e `npx tsx --test tests/validation.te
 
 ## Pendências
 
-Confirmar manualmente todos os fluxos e tamanhos de tela; validar a build de produção em ambiente com acesso às fontes usadas pelo Next.js; publicar o projeto se desejado.
+Confirmar visualmente os fluxos e tamanhos de tela em navegador; publicar o projeto se desejado.
