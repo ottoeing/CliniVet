@@ -1,60 +1,137 @@
 # CliniVet
 
-Agenda de coletas veterinárias com login, calendário, filtros e controle de agendamentos por conta.
-
-## Requisitos
-
-Node.js 20 ou superior e npm. O SQLite é um arquivo local; não há serviço de banco para iniciar.
-
-## Executar localmente
-
-Copie `.env.example` para `.env` e substitua `SESSION_SECRET` por uma chave aleatória de pelo menos 32 caracteres. Defina `DEMO_PASSWORD` se quiser criar a conta de demonstração pelo seed. Depois, na pasta do projeto:
-
-```powershell
-npm install
-npm run db:generate
-npx prisma migrate deploy
-npm run db:seed
-npm run dev
-```
-
-Abra [http://localhost:3000](http://localhost:3000). O banco fica em `prisma/dev.db` e é ignorado pelo Git.
-
-**Conta de demonstração:** `admin@clinivet.local`, com a senha definida por você em `DEMO_PASSWORD`. Sem essa variável, use a tela de cadastro para criar uma conta. O seed não grava senha em texto puro no banco.
+Agenda de coletas veterinárias com cadastro, autenticação e calendário. Cada conta gerencia suas próprias coletas, com filtros, edição e cancelamento.
 
 ## Funcionalidades
 
-- Cadastro e login por e-mail e senha; respostas de login não revelam qual credencial está errada.
-- Agenda em dia, semana e mês no computador; mês com lista do dia selecionado no celular.
-- Criação, edição e cancelamento de coletas. Cancelar mantém o registro com status `Cancelado`.
-- Filtros por data e por múltiplos status, com registros limitados à conta autenticada.
-- Cada conta nova recebe 20 coletas de exemplo, incluindo 13 no mesmo dia; o segundo login não duplica os exemplos.
-- Validação de campos obrigatórios, data futura e conflito entre duas coletas `Agendado` no mesmo horário.
+- Cadastro e login por e-mail e senha. O login responde **“Credenciais inválidas”** sem revelar qual dado está incorreto.
+- Calendário em **dia, semana e mês** no computador. No celular, a visualização mensal permite selecionar um dia e percorrer suas coletas.
+- Criação, edição e cancelamento de coletas. O cancelamento altera o status e preserva o registro.
+- Filtro por data e seleção de múltiplos status; resultados ordenados por data e hora.
+- Isolamento por conta: as consultas e alterações na API usam o usuário da sessão.
+- Vinte coletas de exemplo por conta nova, incluindo um dia movimentado para demonstrar o recurso **“Ver mais”**. Os exemplos não são duplicados ao entrar novamente.
+- Validação no servidor de campos obrigatórios, data futura e conflito entre coletas **Agendado** da mesma conta no mesmo horário.
+- Estados de carregamento, erro e agenda vazia.
 
-## Stack e decisões
+## Tecnologias
 
-Next.js com App Router e TypeScript, Prisma com SQLite, Zod para validação, `lucide-react` para ícones, React DayPicker para datas e SimpleBar para rolagem. Uma aplicação full stack e um banco local mantêm a configuração curta. As regras principais ficam em `src/lib/appointments.ts`; as rotas da API verificam a sessão e restringem consultas pelo `userId`. O formulário de criar e editar é compartilhado.
+| Área | Tecnologia |
+| --- | --- |
+| Aplicação | Next.js 16 (App Router), React 19 e TypeScript |
+| Dados | Prisma 6 e SQLite |
+| Validação e autenticação | Zod, bcryptjs e sessão em cookie HTTP-only assinada com `jose` |
+| Interface | CSS, Lucide, Framer Motion, React DayPicker e SimpleBar |
 
-Execute `npm run lint`, `npx tsc --noEmit`, `npx tsx --test tests/validation.test.ts` e `npm run build` para verificar código, regras e compilação. Com o servidor local iniciado, `node --env-file=.env tests/api-smoke.mjs` testa a API usando contas temporárias. A revisão visual dos fluxos em celular e desktop ainda deve ser concluída antes da entrega final.
+O SQLite usa um arquivo local. Não é necessário iniciar um servidor de banco de dados separado.
+
+## Executar localmente
+
+### Pré-requisitos
+
+- Node.js 20 ou superior e npm.
+- Uma porta livre para o servidor local (a padrão é `3000`).
+
+No PowerShell, dentro da pasta do projeto:
+
+```powershell
+npm ci
+Copy-Item .env.example .env
+```
+
+Edite `.env` e substitua `SESSION_SECRET` por uma chave aleatória. Você pode gerar uma chave no PowerShell com:
+
+```powershell
+[Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+```
+
+Em seguida, prepare o banco e inicie a aplicação:
+
+```powershell
+npm run db:generate
+npx prisma migrate deploy
+npm run dev
+```
+
+Abra [http://localhost:3000](http://localhost:3000) e crie uma conta em **Cadastro**. O banco será criado em `prisma/dev.db`, que não é versionado. Para usar outra porta, execute `npm run dev -- -p 3001` e abra `http://localhost:3001`.
+
+### Conta de demonstração opcional
+
+Defina `DEMO_PASSWORD` no `.env` com uma senha de pelo menos seis caracteres e execute:
+
+```powershell
+npm run db:seed
+```
+
+Isso cria ou atualiza `admin@clinivet.local` com a senha definida. Ao entrar, essa conta também recebe os exemplos de coletas. Sem `DEMO_PASSWORD`, use o cadastro; o seed não cria uma senha padrão.
+
+## Como usar
+
+1. Crie uma conta ou entre com uma existente.
+2. Navegue pelo período no cabeçalho. No computador, escolha dia, semana ou mês; no celular, toque em um dia do mês para ver sua lista.
+3. Use o botão flutuante **+** para agendar uma coleta, informando clínica, animal, exame, data, hora e status. Observações são opcionais.
+4. Use os filtros de data e status para localizar registros. No calendário do computador, **Ver mais** abre os eventos que não cabem na célula.
+5. Passe o mouse sobre um evento para ver detalhes e os controles de edição e cancelamento. No celular, os controles ficam na lista do dia.
+
+## Estrutura do projeto
+
+```text
+src/app/agenda/                 Calendário e interação da agenda
+src/app/api/auth/               Cadastro, login e logout
+src/app/api/appointments/       Consulta, criação e edição de coletas
+src/lib/                        Sessão, validação e acesso ao Prisma
+prisma/                         Modelo, migrações e seed opcional
+tests/                          Testes de regras e da API
+docs/                           Plano de execução e validação do teste
+```
+
+### API
+
+| Método e rota | Uso |
+| --- | --- |
+| `POST /api/auth/register` | Criar conta e iniciar sessão |
+| `POST /api/auth/login` | Entrar |
+| `POST /api/auth/logout` | Sair |
+| `GET /api/appointments` | Listar coletas da conta; aceita `date=AAAA-MM-DD` e um ou mais parâmetros `status` |
+| `POST /api/appointments` | Criar coleta |
+| `PATCH /api/appointments/:id` | Editar ou cancelar uma coleta, alterando seu status |
+
+As rotas de coletas exigem sessão. O modelo está em `prisma/schema.prisma`; as regras de data, conflito e exemplos ficam em `src/lib/appointments.ts`.
+
+## Verificação
+
+```powershell
+npm run lint
+npx tsc --noEmit
+npx tsx --test tests/validation.test.ts
+npm run build
+```
+
+Para testar os fluxos da API, inicie a aplicação em outro terminal e execute:
+
+```powershell
+node --env-file=.env tests/api-smoke.mjs
+```
+
+O teste de API usa contas temporárias e as remove ao final. Se o servidor estiver em outra porta, defina `CLINIVET_TEST_URL` antes de executar o teste (por exemplo, `http://localhost:3001`).
+
+A [validação do teste prático](docs/VALIDACAO_DO_TESTE.md) registra o que foi conferido e o que ainda requer revisão visual em navegador. O [plano de execução](docs/PLANO_DE_EXECUCAO.md) acompanha as atividades concluídas.
+
+## Decisões e limites atuais
+
+- A aplicação reúne interface e API no Next.js para reduzir a configuração local.
+- O SQLite atende à execução local do teste. Para uso com múltiplas instâncias, seria preciso escolher um banco compartilhado e proteger a regra de conflito contra gravações simultâneas.
+- Ainda falta concluir a revisão manual dos fluxos e dos tamanhos de tela. Não há versão publicada nem iniciador `.exe` versionado neste repositório.
 
 ## Uso de IA
 
-**Ferramenta e aplicação.** Codex auxiliou na estrutura do projeto, implementação das rotas e interface, análise das imagens de erro, revisão do código e criação dos testes. As alterações foram conferidas com lint, TypeScript e testes locais antes dos commits recentes.
+**Ferramenta.** Codex auxiliou na implementação, revisão do código, análise das imagens de erro e criação dos testes. As alterações foram conferidas com lint, TypeScript, testes locais e builds durante o desenvolvimento.
 
-**Prompts relevantes, escritos pelo usuário.**
+**Prompts relevantes do usuário.**
 
 1. “Login e Senha precisam ter suas validações ... ao errar email e senha NÃO deve indicar que o email ou a senha está errado”.
 2. “o calendário ta dividido em grids para cada dia (e nao cards) e os cards são as tarefas dentro dos grids”.
 3. “ao preencher a hora digitando manualmente pelo celular não tá formatando e consegui fazer dar um ‘invalid date’”.
-4. “tá faltando o botão de ver mais no dia 12, ocultou uma tarefa”. Este pedido corrigiu uma primeira solução que ocultava tarefas sem exibir o botão.
-5. “o botão de ver mais só deve aparecer quando o grid nao comportar mais tarefas”. Este pedido corrigiu o limite fixo usado na segunda solução.
+4. “tá faltando o botão de ver mais no dia 12, ocultou uma tarefa”.
+5. “o botão de ver mais só deve aparecer quando o grid nao comportar mais tarefas”.
 
-**Erros encontrados e correções.** A digitação manual de horário podia produzir uma data inválida; a tela passou a formatar o horário e validar o valor antes de enviar. O primeiro limite de eventos do mês escondia uma tarefa sem acesso; depois, um limite fixo fazia “Ver mais” aparecer cedo demais. A quantidade visível passou a ser calculada pela altura da célula.
-
-**Decisões do usuário.** O usuário escolheu Next.js full stack, pediu SQLite local com iniciador, exigiu `lucide-react`, orientou o uso de KISS/YAGNI/DRY e preferiu commits pequenos. A visualização móvel mensal e a grade contínua para o desktop também vieram de suas revisões da interface.
-
-**Se o sistema crescesse.** Eu revisaria a acessibilidade e adicionaria testes de interface e integração para os fluxos principais. Um banco compartilhado exigiria regra transacional para evitar conflito de horário em requisições simultâneas. Também separaria configuração e implantação por ambiente, com gestão de segredos fora do repositório.
-
-## Pendências
-
-Confirmar visualmente os fluxos e tamanhos de tela em navegador; publicar o projeto se desejado.
+**Revisões feitas a partir dos resultados.** A entrada manual de horário passou a ser formatada e validada. O limite de eventos visíveis no mês deixou de ser fixo e passou a considerar o espaço disponível na célula. O usuário escolheu Next.js full stack, pediu `lucide-react`, definiu a disposição do calendário e orientou o uso pragmático de KISS, YAGNI e DRY com commits pequenos.
