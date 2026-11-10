@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarPlus, Pencil, Search, XCircle } from "lucide-react";
+import { CalendarPlus, Pencil, XCircle } from "lucide-react";
 
 type Status = "AGENDADO" | "COLETADO" | "CANCELADO";
 type Appointment = {
@@ -53,6 +53,9 @@ export function AgendaClient() {
   const [pending, setPending] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [showForm, setShowForm] = useState(false);
+  const [view, setView] = useState<"day" | "week" | "month">("month");
+  const [calendarDate] = useState(new Date());
 
   const loadAppointments = useCallback(async () => {
     setLoading(true);
@@ -106,6 +109,7 @@ export function AgendaClient() {
     setEditingId(null);
     setDraft(emptyDraft);
     setFormError("");
+    setShowForm(false);
   }
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
@@ -133,6 +137,7 @@ export function AgendaClient() {
     setEditingId(appointment.id);
     setDraft({ ...appointment, scheduledAt: toLocalInputValue(appointment.scheduledAt) });
     setFormError("");
+    setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -157,7 +162,7 @@ export function AgendaClient() {
 
   return (
     <div className="agenda-layout">
-      <section className="panel form-panel" aria-labelledby="form-title">
+      {showForm && <section className="panel form-panel" aria-labelledby="form-title">
         <div className="panel-title">
           <CalendarPlus aria-hidden size={22} />
           <h2 id="form-title">{editingId ? "Editar coleta" : "Nova coleta"}</h2>
@@ -180,15 +185,15 @@ export function AgendaClient() {
           {formError && <p className="form-error" role="alert">{formError}</p>}
           <div className="form-actions">
             <button className="primary-button" disabled={pending} type="submit">{pending ? "Salvando..." : editingId ? "Salvar alterações" : "Agendar coleta"}</button>
-            {editingId && <button className="text-button" onClick={resetForm} type="button">Cancelar edição</button>}
+            <button className="text-button" onClick={resetForm} type="button">Cancelar</button>
           </div>
         </form>
-      </section>
+      </section>}
 
       <section className="panel list-panel" aria-labelledby="list-title">
         <div className="list-header">
           <div><p className="eyebrow">Acompanhamento</p><h2 id="list-title">Coletas agendadas</h2></div>
-          <button className="icon-button" aria-label="Atualizar agenda" onClick={() => void loadAppointments()} type="button"><Search aria-hidden size={18} /></button>
+          <div className="view-switch">{(["day", "week", "month"] as const).map((item) => <button key={item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button">{{ day: "Dia", week: "Semana", month: "Mês" }[item]}</button>)}</div>
         </div>
         <div className="filters">
           <label>Data<input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} /></label>
@@ -197,13 +202,21 @@ export function AgendaClient() {
         {loading && <p className="state-message">Carregando agenda...</p>}
         {fetchError && <p className="state-message form-error">{fetchError}</p>}
         {!loading && !fetchError && appointments.length === 0 && <p className="state-message">Nenhuma coleta encontrada para estes filtros.</p>}
-        {!loading && !fetchError && appointments.length > 0 && <ul className="appointment-list">
+        {!loading && !fetchError && appointments.length > 0 && <><div className={`calendar-board calendar-${view}`}>
+          {view === "month" && ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => <span className="weekday" key={day}>{day}</span>)}
+          {Array.from({ length: view === "day" ? 1 : view === "week" ? 7 : new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, index) => {
+            const date = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), view === "day" ? calendarDate.getDate() : view === "week" ? calendarDate.getDate() + index : index + 1);
+            const entries = appointments.filter((item) => new Date(item.scheduledAt).toDateString() === date.toDateString());
+            return <div className="calendar-cell" key={date.toISOString()}><strong>{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}</strong>{entries.map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => startEdit(item)} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal}</button>)}</div>;
+          })}
+        </div><ul className="appointment-list">
           {appointments.map((appointment) => <li key={appointment.id} className="appointment-item">
             <div className="appointment-main"><strong>{appointment.animal}</strong><span>{appointment.clinic} · {appointment.examType}</span><span>{toDisplayDate(appointment.scheduledAt)}</span>{appointment.notes && <small>{appointment.notes}</small>}</div>
             <div className="appointment-actions"><span className={`status status-${appointment.status.toLowerCase()}`}>{statusLabels[appointment.status]}</span><button aria-label={`Editar ${appointment.animal}`} className="icon-button" onClick={() => startEdit(appointment)} type="button"><Pencil aria-hidden size={16} /></button>{appointment.status !== "CANCELADO" && <button aria-label={`Cancelar ${appointment.animal}`} className="icon-button danger-button" disabled={pending} onClick={() => void cancelAppointment(appointment)} type="button"><XCircle aria-hidden size={16} /></button>}</div>
           </li>)}
-        </ul>}
+        </ul></>}
       </section>
+      <button className="fab" aria-label="Agendar nova coleta" onClick={() => { resetForm(); setShowForm(true); }} type="button"><CalendarPlus aria-hidden size={24} /></button>
     </div>
   );
 }

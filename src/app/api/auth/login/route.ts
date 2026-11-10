@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs";
 import { NextResponse } from "next/server";
 
 import { createSession } from "@/lib/auth";
+import { ensureDemoAppointments } from "@/lib/appointments";
 import { credentialsSchema } from "@/lib/credentials";
 import { prisma } from "@/lib/prisma";
 
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
     return NextResponse.json(INVALID_CREDENTIALS, { status: 401 });
   }
 
+  await ensureDemoAppointments(user.id);
   await createSession({ userId: user.id, email: user.email });
   return NextResponse.json({ ok: true });
 }

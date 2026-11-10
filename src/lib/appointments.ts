@@ -50,3 +50,16 @@ export async function hasScheduledConflict(scheduledAt: Date, userId: string, ex
 export function validationResponse(message: string, fields?: Record<string, string[]>) {
   return Response.json({ message, fields }, { status: 400 });
 }
+
+export async function ensureDemoAppointments(userId: string) {
+  if (await prisma.appointment.count({ where: { userId } })) return;
+  const first = new Date();
+  first.setDate(first.getDate() + 1); first.setHours(10, 0, 0, 0);
+  const second = new Date(first); second.setDate(second.getDate() + 1); second.setHours(14, 30, 0, 0);
+  const third = new Date(second); third.setDate(third.getDate() + 1); third.setHours(9, 15, 0, 0);
+  await prisma.appointment.createMany({ data: [
+    { clinic: "Clínica Patas & Cia", animal: "Luna", examType: "Hemograma", scheduledAt: first, status: "AGENDADO", notes: "Coleta em jejum.", userId },
+    { clinic: "Vet Central", animal: "Thor", examType: "Bioquímico", scheduledAt: second, status: "AGENDADO", notes: "Confirmar responsável.", userId },
+    { clinic: "Clínica Vida Animal", animal: "Mia", examType: "Cultura", scheduledAt: third, status: "COLETADO", notes: "Amostra encaminhada.", userId },
+  ] });
+}

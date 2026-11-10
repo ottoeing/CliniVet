@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 
 import { createSession } from "@/lib/auth";
+import { ensureDemoAppointments } from "@/lib/appointments";
 import { credentialsSchema } from "@/lib/credentials";
 import { prisma } from "@/lib/prisma";
 
@@ -28,23 +29,7 @@ export async function POST(request: Request) {
       select: { id: true, email: true },
     });
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(10, 0, 0, 0);
-    const dayAfter = new Date(tomorrow);
-    dayAfter.setDate(dayAfter.getDate() + 1);
-    dayAfter.setHours(14, 30, 0, 0);
-    const thirdDay = new Date(dayAfter);
-    thirdDay.setDate(thirdDay.getDate() + 1);
-    thirdDay.setHours(9, 15, 0, 0);
-
-    await prisma.appointment.createMany({
-      data: [
-        { clinic: "Clínica Patas & Cia", animal: "Luna", examType: "Hemograma", scheduledAt: tomorrow, status: "AGENDADO", notes: "Coleta em jejum.", userId: user.id },
-        { clinic: "Vet Central", animal: "Thor", examType: "Bioquímico", scheduledAt: dayAfter, status: "AGENDADO", notes: "Confirmar responsável.", userId: user.id },
-        { clinic: "Clínica Vida Animal", animal: "Mia", examType: "Cultura", scheduledAt: thirdDay, status: "COLETADO", notes: "Amostra encaminhada.", userId: user.id },
-      ],
-    });
+    await ensureDemoAppointments(user.id);
 
     await createSession({ userId: user.id, email: user.email });
     return NextResponse.json({ ok: true }, { status: 201 });

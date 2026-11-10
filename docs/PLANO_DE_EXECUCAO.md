@@ -36,6 +36,8 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Exibir estados de carregamento, erro e lista vazia.
 - [x] Indicar visualmente os campos obrigatórios.
 - [x] Aplicar interações de hover e identidade visual própria.
+- [x] Oferecer visualizações de calendário por dia, semana e mês.
+- [x] Abrir o formulário pelo botão flutuante de nova coleta.
 - [ ] Revisar responsividade para celular e desktop.
 
 ## Qualidade e entrega
