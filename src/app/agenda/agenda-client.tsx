@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, FormEvent, useCallback, useEffect, useState } from "react";
+import { CSSProperties, FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Columns3, Grid3X3, List, LogOut, Pencil, SlidersHorizontal, XCircle } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { ptBR } from "react-day-picker/locale";
@@ -78,6 +78,8 @@ export function AgendaClient({ email }: { email: string }) {
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [selectedMobileDate, setSelectedMobileDate] = useState(new Date());
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
+  const calendarBoardRef = useRef<HTMLDivElement>(null);
+  const [monthCapacity, setMonthCapacity] = useState({ full: 3, withMore: 2 });
   const weekStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate() - calendarDate.getDay());
   const monthStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
   const monthGridStart = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - monthStart.getDay());
@@ -104,6 +106,30 @@ export function AgendaClient({ email }: { email: string }) {
       : new Date(current.getFullYear(), current.getMonth(), current.getDate() + direction * (view === "week" ? 7 : 1)));
   }
   const selectedFilterDate = dateFilter ? new Date(`${dateFilter}T12:00:00`) : undefined;
+
+  useEffect(() => {
+    if (view !== "month" || loading || fetchError) return;
+    const cell = calendarBoardRef.current?.querySelector<HTMLElement>(".calendar-cell");
+    if (!cell) return;
+    const measure = () => {
+      const styles = getComputedStyle(cell);
+      const header = cell.querySelector<HTMLElement>(".calendar-day-number");
+      const event = calendarBoardRef.current?.querySelector<HTMLElement>(".calendar-cell > .calendar-event-wrap");
+      const more = calendarBoardRef.current?.querySelector<HTMLElement>(".calendar-cell > .more-events");
+      const available = cell.clientHeight - parseFloat(styles.paddingTop) - parseFloat(styles.paddingBottom) - (header?.offsetHeight ?? 18) - 3;
+      const eventHeight = Math.max(28, event?.getBoundingClientRect().height ?? 28);
+      const moreHeight = Math.max(19, more?.getBoundingClientRect().height ?? 19);
+      const next = {
+        full: Math.max(0, Math.floor(available / eventHeight)),
+        withMore: Math.max(0, Math.floor((available - moreHeight) / eventHeight)),
+      };
+      setMonthCapacity((current) => current.full === next.full && current.withMore === next.withMore ? current : next);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(cell);
+    return () => observer.disconnect();
+  }, [view, loading, fetchError, calendarDate, appointments.length]);
 
   const loadAppointments = useCallback(async () => {
     setLoading(true);
@@ -278,12 +304,13 @@ export function AgendaClient({ email }: { email: string }) {
         </div>
         {loading && <p className="state-message">Carregando agenda...</p>}
         {fetchError && <p className="state-message form-error">{fetchError}</p>}
-        {!loading && !fetchError && <><motion.div key={`${view}-${calendarDate.getFullYear()}-${calendarDate.getMonth()}-${calendarDate.getDate()}`} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: "easeOut" }} style={{ "--calendar-weeks": monthGridLength / 7 } as CSSProperties} className={`calendar-board calendar-${view}`}>
+        {!loading && !fetchError && <><motion.div ref={calendarBoardRef} key={`${view}-${calendarDate.getFullYear()}-${calendarDate.getMonth()}-${calendarDate.getDate()}`} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: "easeOut" }} style={{ "--calendar-weeks": monthGridLength / 7 } as CSSProperties} className={`calendar-board calendar-${view}`}>
           {(view === "month" || view === "week") && ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => <span className="weekday" key={day}>{day}</span>)}
           {visibleDays.map((date) => {
             const entries = appointments.filter((item) => new Date(item.scheduledAt).toDateString() === date.toDateString());
             const dateKey = date.toDateString();
-            return <div className={`calendar-cell${view === "month" && date.getMonth() !== calendarDate.getMonth() ? " outside-month" : ""}${dateKey === selectedMobileDate.toDateString() ? " selected-day" : ""}`} key={date.toISOString()}><button className="calendar-day-number" aria-label={`Ver coletas de ${date.toLocaleDateString("pt-BR")}`} onClick={() => setSelectedMobileDate(date)} type="button">{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}{view === "month" && entries.length > 0 && <span className="day-event-dot" />}</button>{(view === "month" ? entries.slice(0, 2) : entries).map(renderCalendarEvent)}{view === "month" && entries.length > 2 && <><button className="more-events" aria-expanded={expandedDate === dateKey} onClick={() => setExpandedDate(expandedDate === dateKey ? null : dateKey)} type="button">Ver mais ({entries.length - 2})</button>{expandedDate === dateKey && <div className="more-events-popover"><div className="more-events-heading">{date.toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}<button aria-label="Fechar lista" onClick={() => setExpandedDate(null)} type="button">×</button></div><div className="more-events-list">{entries.map(renderCalendarEvent)}</div></div>}</>}</div>;
+            const visibleCount = view === "month" && entries.length > monthCapacity.full ? monthCapacity.withMore : entries.length;
+            return <div className={`calendar-cell${view === "month" && date.getMonth() !== calendarDate.getMonth() ? " outside-month" : ""}${dateKey === selectedMobileDate.toDateString() ? " selected-day" : ""}`} key={date.toISOString()}><button className="calendar-day-number" aria-label={`Ver coletas de ${date.toLocaleDateString("pt-BR")}`} onClick={() => setSelectedMobileDate(date)} type="button">{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}{view === "month" && entries.length > 0 && <span className="day-event-dot" />}</button>{entries.slice(0, visibleCount).map(renderCalendarEvent)}{view === "month" && entries.length > visibleCount && <><button className="more-events" aria-expanded={expandedDate === dateKey} onClick={() => setExpandedDate(expandedDate === dateKey ? null : dateKey)} type="button">Ver mais ({entries.length - visibleCount})</button>{expandedDate === dateKey && <div className="more-events-popover"><div className="more-events-heading">{date.toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}<button aria-label="Fechar lista" onClick={() => setExpandedDate(null)} type="button">×</button></div><div className="more-events-list">{entries.map(renderCalendarEvent)}</div></div>}</>}</div>;
           })}
         </motion.div>{(view === "day" || view === "month") && <SimpleBar className={`appointments-scroll ${view === "month" ? "mobile-month-events" : ""}`}><div className="mobile-events-title">{(view === "month" ? selectedMobileDate : calendarDate).toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}</div><ul className="appointment-list">
           {appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === (view === "month" ? selectedMobileDate : calendarDate).toDateString()).map((appointment) => <li key={appointment.id} className="appointment-item">

@@ -228,6 +228,12 @@ html, body { overflow-x: clip; }
 .more-events { margin-top: 5px; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; }
 .more-events:hover { text-decoration: underline; }
 .more-events-popover { position: absolute; z-index: 60; top: 35px; left: 8px; width: min(300px, 85vw); padding: 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--cream); box-shadow: 0 15px 35px rgba(20,55,42,.22); }
+:is(.calendar-month, .calendar-week) .calendar-cell:nth-child(7n + 5) .event-tooltip,
+:is(.calendar-month, .calendar-week) .calendar-cell:nth-child(7n + 6) .event-tooltip,
+:is(.calendar-month, .calendar-week) .calendar-cell:nth-child(7n + 7) .event-tooltip { left: auto; right: 0; }
+.calendar-month .calendar-cell:nth-child(7n + 5) .more-events-popover,
+.calendar-month .calendar-cell:nth-child(7n + 6) .more-events-popover,
+.calendar-month .calendar-cell:nth-child(7n + 7) .more-events-popover { left: auto; right: 8px; }
 .more-events-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-weight: 700; text-transform: capitalize; }
 .more-events-heading button { border: 0; background: transparent; color: var(--muted); font-size: 1.3rem; cursor: pointer; }
 .more-events-list { max-height: 260px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #70aa9c transparent; }
