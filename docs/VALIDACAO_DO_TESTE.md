@@ -46,4 +46,4 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 - `npm audit --omit=dev --audit-level=high` — encontrou os 3 alertas descritos acima.
 - Instalação limpa — dependências instaladas, migração aplicada e página de login carregada; arquivos temporários removidos.
 - Busca e paginação — verificadas em navegador com uma conta temporária de 20 exemplos; a conta foi removida ao final.
-- `compose.yaml` e `render.yaml` — sintaxe analisada com o módulo YAML local; execução Docker pendente porque o comando não está instalado neste Windows.
+- `compose.yaml` — sintaxe analisada com o módulo YAML local; execução Docker pendente porque o comando não está instalado neste Windows. A configuração de nuvem foi retirada após a decisão por hospedagem local.
