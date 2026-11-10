@@ -24,18 +24,41 @@ async function request(path, method = "GET", body, cookie = "") {
 
 try {
   assert.equal((await request("/api/appointments")).status, 401);
+  assert.equal((await request("/api/appointments", "POST", { clinic: "Vet" })).status, 401);
+  assert.equal((await request("/api/appointments/inexistente", "PATCH", { clinic: "Vet" })).status, 401);
+  assert.equal((await request("/api/auth/register", "POST")).status, 400);
+  assert.deepEqual((await request("/api/auth/login", "POST")).data, { message: "Credenciais inválidas." });
   const invalidLogin = await request("/api/auth/login", "POST", { email: firstEmail, password: "incorreta" });
   assert.equal(invalidLogin.status, 401);
   assert.equal(invalidLogin.data.message, "Credenciais inválidas.");
+  for (const credentials of [
+    { email: "sem-arroba", password },
+    { email: `teste-@gmail.com`, password },
+    { email: firstEmail, password: "curta" },
+  ]) {
+    const failedRegistration = await request("/api/auth/register", "POST", credentials);
+    assert.equal(failedRegistration.status, 400);
+    assert.ok(failedRegistration.data.fields);
+    const failedLogin = await request("/api/auth/login", "POST", credentials);
+    assert.equal(failedLogin.status, 401);
+    assert.equal(failedLogin.data.message, "Credenciais inválidas.");
+    assert.equal(failedLogin.data.fields, undefined);
+  }
 
   const registration = await request("/api/auth/register", "POST", { email: firstEmail, password });
   assert.equal(registration.status, 201);
   assert.ok(registration.cookie);
+  assert.equal((await request("/api/auth/register", "POST", { email: firstEmail, password })).status, 409);
   const firstCookie = registration.cookie;
 
   const initial = await request("/api/appointments", "GET", undefined, firstCookie);
   assert.equal(initial.status, 200);
   assert.ok(initial.data.appointments.length >= 20);
+  assert.deepEqual(
+    initial.data.appointments.map((item) => item.scheduledAt),
+    initial.data.appointments.map((item) => item.scheduledAt).sort(),
+  );
+  assert.equal((await request("/api/appointments", "POST", undefined, firstCookie)).status, 400);
   const multipleStatuses = await request("/api/appointments?status=AGENDADO&status=COLETADO", "GET", undefined, firstCookie);
   assert.equal(multipleStatuses.status, 200);
   assert.ok(multipleStatuses.data.appointments.length > 0);
@@ -51,6 +74,7 @@ try {
   const scheduledTimes = initial.data.appointments.filter((item) => item.status === "AGENDADO").map((item) => item.scheduledAt);
   assert.equal(new Set(scheduledTimes).size, scheduledTimes.length);
   assert.equal((await request("/api/auth/login", "POST", { email: firstEmail, password })).status, 200);
+  assert.deepEqual((await request("/api/auth/login", "POST", { email: firstEmail, password: `${password}errada` })).data, { message: "Credenciais inválidas." });
   assert.equal((await request("/api/appointments", "GET", undefined, firstCookie)).data.appointments.length, initial.data.appointments.length);
 
   const future = new Date(Date.now() + 40 * 86_400_000);
@@ -65,11 +89,17 @@ try {
   };
   assert.equal((await request("/api/appointments", "POST", { ...appointment, animal: "" }, firstCookie)).status, 400);
   assert.equal((await request("/api/appointments", "POST", { ...appointment, scheduledAt: new Date(Date.now() - 86_400_000).toISOString() }, firstCookie)).status, 400);
+  assert.equal((await request("/api/appointments", "POST", { ...appointment, scheduledAt: "invalid date" }, firstCookie)).status, 400);
+  assert.equal((await request("/api/appointments", "POST", { ...appointment, status: "DESCONHECIDO" }, firstCookie)).status, 400);
 
   const created = await request("/api/appointments", "POST", appointment, firstCookie);
   assert.equal(created.status, 201);
   const id = created.data.appointment.id;
   assert.equal((await request("/api/appointments", "POST", appointment, firstCookie)).status, 400);
+  assert.equal((await request(`/api/appointments/${id}`, "PATCH", { ...appointment, examType: "" }, firstCookie)).status, 400);
+  assert.equal((await request(`/api/appointments/${id}`, "PATCH", undefined, firstCookie)).status, 400);
+  assert.equal((await request(`/api/appointments/${id}`, "PATCH", { ...appointment, scheduledAt: "invalid date" }, firstCookie)).status, 400);
+  assert.equal((await request("/api/appointments/inexistente", "PATCH", appointment, firstCookie)).status, 404);
 
   const dateKey = `${future.getFullYear()}-${String(future.getMonth() + 1).padStart(2, "0")}-${String(future.getDate()).padStart(2, "0")}`;
   const byDate = await request(`/api/appointments?date=${dateKey}`, "GET", undefined, firstCookie);
@@ -77,6 +107,10 @@ try {
   const updated = await request(`/api/appointments/${id}`, "PATCH", { ...appointment, animal: "Animal editado" }, firstCookie);
   assert.equal(updated.status, 200);
   assert.equal(updated.data.appointment.animal, "Animal editado");
+  const secondFuture = new Date(future.getTime() + 60 * 60_000).toISOString();
+  const secondCreated = await request("/api/appointments", "POST", { ...appointment, scheduledAt: secondFuture }, firstCookie);
+  assert.equal(secondCreated.status, 201);
+  assert.equal((await request(`/api/appointments/${secondCreated.data.appointment.id}`, "PATCH", { ...appointment, scheduledAt: appointment.scheduledAt }, firstCookie)).status, 400);
 
   const secondRegistration = await request("/api/auth/register", "POST", { email: secondEmail, password });
   assert.equal(secondRegistration.status, 201);
@@ -87,10 +121,14 @@ try {
 
   const cancelled = await request(`/api/appointments/${id}`, "PATCH", { ...appointment, animal: "Animal editado", status: "CANCELADO" }, firstCookie);
   assert.equal(cancelled.status, 200);
+  assert.equal(cancelled.data.appointment.status, "CANCELADO");
   const byStatus = await request("/api/appointments?status=CANCELADO", "GET", undefined, firstCookie);
   assert.ok(byStatus.data.appointments.some((item) => item.id === id));
+  assert.equal((await request("/api/appointments", "POST", appointment, firstCookie)).status, 201);
 
-  assert.equal((await request("/api/auth/logout", "POST", undefined, firstCookie)).status, 200);
+  const logout = await request("/api/auth/logout", "POST", undefined, firstCookie);
+  assert.equal(logout.status, 200);
+  assert.equal(logout.cookie, "clinivet_session=");
   assert.equal((await request("/api/appointments")).status, 401);
   console.log("Autenticação, 20 exemplos por conta, mais de 10 em um dia, filtros, criação, edição, cancelamento e isolamento passaram.");
 } finally {

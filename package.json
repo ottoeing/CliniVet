@@ -7,6 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:unit": "tsx --test tests/validation.test.ts",
+    "test:mutation": "node tests/mutation.mjs",
+    "test:api": "node --env-file=.env tests/api-smoke.mjs",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed"
