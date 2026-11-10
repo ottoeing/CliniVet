@@ -1,11 +1,12 @@
 "use client";
 
 import { CSSProperties, FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Columns3, Grid3X3, List, LogOut, Pencil, SlidersHorizontal, XCircle } from "lucide-react";
+import { CalendarDays, CalendarPlus, Check, ChevronLeft, ChevronRight, Columns3, Grid3X3, List, LogOut, Pencil, SlidersHorizontal, XCircle } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { ptBR } from "react-day-picker/locale";
 import SimpleBar from "simplebar-react";
 import { motion } from "framer-motion";
+import { createPortal } from "react-dom";
 import "react-day-picker/style.css";
 import "simplebar-react/dist/simplebar.min.css";
 import { LogoutButton } from "../ui/logout-button";
@@ -57,7 +58,7 @@ function formatTimeInput(value: string) {
 
 export function AgendaClient({ email }: { email: string }) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<Status[]>([]);
   const [dateFilter, setDateFilter] = useState("");
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState("");
@@ -67,6 +68,9 @@ export function AgendaClient({ email }: { email: string }) {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [showForm, setShowForm] = useState(false);
   const [showFormCalendar, setShowFormCalendar] = useState(false);
+  const dateTriggerRef = useRef<HTMLButtonElement>(null);
+  const dateMenuRef = useRef<HTMLDivElement>(null);
+  const [dateMenuPosition, setDateMenuPosition] = useState<{ left: number; top?: number; bottom?: number; maxHeight: number }>({ left: 12, top: 12, maxHeight: 320 });
   const [openFilter, setOpenFilter] = useState<"date" | "status" | null>(null);
   const [view, setView] = useState<"day" | "week" | "month">("month");
   useEffect(() => {
@@ -78,6 +82,7 @@ export function AgendaClient({ email }: { email: string }) {
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [selectedMobileDate, setSelectedMobileDate] = useState(new Date());
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
+  const [hoveredEvent, setHoveredEvent] = useState<{ item: Appointment; left: number; top: number } | null>(null);
   const calendarBoardRef = useRef<HTMLDivElement>(null);
   const [monthCapacity, setMonthCapacity] = useState({ full: 3, withMore: 2 });
   const weekStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate() - calendarDate.getDay());
@@ -107,6 +112,36 @@ export function AgendaClient({ email }: { email: string }) {
   }
   const selectedFilterDate = dateFilter ? new Date(`${dateFilter}T12:00:00`) : undefined;
 
+  const updateDateMenuPosition = useCallback(() => {
+    const bounds = dateTriggerRef.current?.getBoundingClientRect();
+    if (!bounds) return;
+    const below = window.innerHeight - bounds.bottom - 12;
+    const above = bounds.top - 12;
+    const left = Math.max(12, Math.min(bounds.left, window.innerWidth - Math.min(344, window.innerWidth - 24) - 12));
+    setDateMenuPosition(below >= 320 || below >= above
+      ? { left, top: bounds.bottom + 6, maxHeight: Math.max(80, below - 6) }
+      : { left, bottom: window.innerHeight - bounds.top + 6, maxHeight: Math.max(80, above - 6) });
+  }, []);
+
+  useEffect(() => {
+    if (!showFormCalendar) return;
+    const closeOnOutside = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (!dateTriggerRef.current?.contains(target) && !dateMenuRef.current?.contains(target)) setShowFormCalendar(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === "Escape") setShowFormCalendar(false); };
+    window.addEventListener("pointerdown", closeOnOutside);
+    window.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", updateDateMenuPosition);
+    window.addEventListener("scroll", updateDateMenuPosition, true);
+    return () => {
+      window.removeEventListener("pointerdown", closeOnOutside);
+      window.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", updateDateMenuPosition);
+      window.removeEventListener("scroll", updateDateMenuPosition, true);
+    };
+  }, [showFormCalendar, updateDateMenuPosition]);
+
   useEffect(() => {
     if (view !== "month" || loading || fetchError) return;
     const cell = calendarBoardRef.current?.querySelector<HTMLElement>(".calendar-cell");
@@ -135,7 +170,7 @@ export function AgendaClient({ email }: { email: string }) {
     setLoading(true);
     setFetchError("");
     const params = new URLSearchParams();
-    if (statusFilter) params.set("status", statusFilter);
+    statusFilter.forEach((status) => params.append("status", status));
     if (dateFilter) params.set("date", dateFilter);
 
     try {
@@ -153,7 +188,7 @@ export function AgendaClient({ email }: { email: string }) {
   useEffect(() => {
     let active = true;
     const params = new URLSearchParams();
-    if (statusFilter) params.set("status", statusFilter);
+    statusFilter.forEach((status) => params.append("status", status));
     if (dateFilter) params.set("date", dateFilter);
 
     fetch(`/api/appointments?${params.toString()}`)
@@ -212,6 +247,7 @@ export function AgendaClient({ email }: { email: string }) {
   }
 
   function startEdit(appointment: Appointment) {
+    setHoveredEvent(null);
     setEditingId(appointment.id);
     setDraft({ ...appointment, scheduledAt: toLocalInputValue(appointment.scheduledAt) });
     setFormError("");
@@ -220,6 +256,7 @@ export function AgendaClient({ email }: { email: string }) {
   }
 
   async function cancelAppointment(appointment: Appointment) {
+    setHoveredEvent(null);
     if (!window.confirm(`Cancelar a coleta de ${appointment.animal}?`)) return;
     setPending(true);
     const response = await fetch(`/api/appointments/${appointment.id}`, {
@@ -238,12 +275,40 @@ export function AgendaClient({ email }: { email: string }) {
     await loadAppointments();
   }
 
+  function toggleStatusFilter(status: Status) {
+    setStatusFilter((current) => current.includes(status)
+      ? current.filter((item) => item !== status)
+      : [...current, status]);
+  }
+
+  function renderStatusFilter() {
+    return <div className="filter-menu status-filter-menu" role="group" aria-label="Filtrar por status">
+      <button className={`filter-option${statusFilter.length === 0 ? " selected" : ""}`} aria-pressed={statusFilter.length === 0} onClick={() => setStatusFilter([])} type="button">Todos{statusFilter.length === 0 && <Check aria-hidden size={15} />}</button>
+      {(Object.entries(statusLabels) as [Status, string][]).map(([value, label]) => {
+        const selected = statusFilter.includes(value);
+        return <button key={value} className={`filter-option${selected ? " selected" : ""}`} aria-pressed={selected} onClick={() => toggleStatusFilter(value)} type="button">{label}{selected && <Check aria-hidden size={15} />}</button>;
+      })}
+    </div>;
+  }
+
+  function showEventTooltip(item: Appointment, element: HTMLElement) {
+    const bounds = element.getBoundingClientRect();
+    const width = Math.min(275, window.innerWidth - 24);
+    const estimatedHeight = item.notes ? 155 : 115;
+    setHoveredEvent({
+      item,
+      left: Math.max(12, Math.min(bounds.left, window.innerWidth - width - 12)),
+      top: bounds.bottom + estimatedHeight + 8 < window.innerHeight
+        ? bounds.bottom + 6
+        : Math.max(8, bounds.top - estimatedHeight - 6),
+    });
+  }
+
   function renderCalendarEvent(item: Appointment) {
-    return <div className="calendar-event-wrap" key={item.id}>
+    return <div className="calendar-event-wrap" key={item.id} onMouseEnter={(event) => showEventTooltip(item, event.currentTarget)} onMouseLeave={() => setHoveredEvent(null)} onFocusCapture={(event) => showEventTooltip(item, event.currentTarget)} onBlurCapture={() => setHoveredEvent(null)}>
       <button className={`calendar-event event-${item.status.toLowerCase()}`} onClick={() => startEdit(item)} type="button"><span className="event-time">{toDisplayDate(item.scheduledAt).slice(-5)}</span><span className="event-animal">{item.animal}</span></button>
-      <button className="event-action" aria-label={`Editar ${item.animal}`} onClick={() => startEdit(item)} type="button"><Pencil size={14} /></button>
+      <button className={`event-action event-action-edit${item.status === "CANCELADO" ? " event-action-solo" : ""}`} aria-label={`Editar ${item.animal}`} onClick={() => startEdit(item)} type="button"><Pencil size={14} /></button>
       {item.status !== "CANCELADO" && <button className="event-action event-action-danger" aria-label={`Cancelar ${item.animal}`} disabled={pending} onClick={() => void cancelAppointment(item)} type="button"><XCircle size={14} /></button>}
-      <div className="event-tooltip" role="tooltip"><strong>{item.animal}</strong><span>{item.clinic} · {item.examType}</span><span>{toDisplayDate(item.scheduledAt)}</span>{item.notes && <p>{item.notes}</p>}</div>
     </div>;
   }
 
@@ -253,7 +318,7 @@ export function AgendaClient({ email }: { email: string }) {
         <div className="brand"><CalendarDays aria-hidden size={25} /><div><p className="eyebrow">CliniVet</p><h1>Agenda de coletas</h1></div></div>
         <div className="mobile-header-filters">
           <div className="filter-anchor"><button className={`icon-button${dateFilter ? " filter-active" : ""}`} aria-label="Filtrar por data" aria-expanded={openFilter === "date"} onClick={() => setOpenFilter(openFilter === "date" ? null : "date")} type="button"><CalendarDays size={18} /></button>{openFilter === "date" && <div className="filter-menu date-filter-menu"><DayPicker locale={ptBR} mode="single" selected={selectedFilterDate} onSelect={(date) => { setDateFilter(date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : ""); setOpenFilter(null); }} />{dateFilter && <button className="filter-option" onClick={() => { setDateFilter(""); setOpenFilter(null); }} type="button">Limpar filtro</button>}</div>}</div>
-          <div className="filter-anchor"><button className={`icon-button${statusFilter ? " filter-active" : ""}`} aria-label="Filtrar por status" aria-expanded={openFilter === "status"} onClick={() => setOpenFilter(openFilter === "status" ? null : "status")} type="button"><SlidersHorizontal size={18} /></button>{openFilter === "status" && <div className="filter-menu status-filter-menu">{[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))].map((option) => <button key={option.value} className={`filter-option${statusFilter === option.value ? " selected" : ""}`} onClick={() => { setStatusFilter(option.value); setOpenFilter(null); }} type="button">{option.label}</button>)}</div>}</div>
+          <div className="filter-anchor"><button className={`icon-button${statusFilter.length ? " filter-active" : ""}`} aria-label="Filtrar por status" aria-expanded={openFilter === "status"} onClick={() => setOpenFilter(openFilter === "status" ? null : "status")} type="button"><SlidersHorizontal size={18} /></button>{openFilter === "status" && renderStatusFilter()}</div>
         </div>
         <div className="session-info"><span>{email}</span><LogoutButton icon={<LogOut aria-hidden size={18} />} iconOnly /></div>
       </header>
@@ -272,7 +337,7 @@ export function AgendaClient({ email }: { email: string }) {
           <label htmlFor="examType">Tipo de exame <span className="required">*</span></label>
           <input id="examType" value={draft.examType} onChange={(e) => updateDraft("examType", e.target.value)} required />
           <label htmlFor="scheduledAtDate">Data e hora da coleta <span className="required">*</span></label>
-          <div className="appointment-datetime"><button id="scheduledAtDate" className="date-trigger" aria-expanded={showFormCalendar} onClick={() => setShowFormCalendar((open) => !open)} type="button">{draft.scheduledAt && draft.scheduledAt.slice(0, 10) ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "Selecionar data"}<CalendarDays size={18} /></button>
+          <div className="appointment-datetime"><button ref={dateTriggerRef} id="scheduledAtDate" className="date-trigger" aria-expanded={showFormCalendar} onClick={() => { if (showFormCalendar) setShowFormCalendar(false); else { updateDateMenuPosition(); setShowFormCalendar(true); } }} type="button">{draft.scheduledAt && draft.scheduledAt.slice(0, 10) ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "Selecionar data"}<CalendarDays size={18} /></button>
           <input aria-label="Horário da coleta no formato HH:MM" type="text" inputMode="numeric" placeholder="HH:MM" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" maxLength={5} title="Informe o horário no formato HH:MM" value={draft.scheduledAt.slice(11)} onChange={(e) => updateDraft("scheduledAt", `${draft.scheduledAt.slice(0, 10)}T${formatTimeInput(e.target.value)}`)} required /></div>
           <label htmlFor="status">Status <span className="required">*</span></label>
           <select id="status" value={draft.status} onChange={(e) => updateDraft("status", e.target.value)}>
@@ -287,7 +352,7 @@ export function AgendaClient({ email }: { email: string }) {
           </div>
         </form>
         </section>
-        {showFormCalendar && <div className="appointment-calendar-layer"><button className="appointment-calendar-backdrop" aria-label="Fechar calendário" onClick={() => setShowFormCalendar(false)} type="button" /><div className="appointment-date-menu" role="dialog" aria-label="Selecionar data da coleta"><DayPicker locale={ptBR} mode="single" selected={draft.scheduledAt && draft.scheduledAt.slice(0, 10) ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`) : undefined} disabled={{ before: new Date() }} onSelect={(date) => { if (date) { updateDraft("scheduledAt", `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${draft.scheduledAt.slice(11) || "09:00"}`); setShowFormCalendar(false); } }} /></div></div>}
+        {showFormCalendar && createPortal(<div ref={dateMenuRef} className="appointment-date-menu anchored-date-menu" role="dialog" aria-label="Selecionar data da coleta" style={dateMenuPosition}><DayPicker locale={ptBR} mode="single" selected={draft.scheduledAt && draft.scheduledAt.slice(0, 10) ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`) : undefined} disabled={{ before: new Date() }} onSelect={(date) => { if (date) { updateDraft("scheduledAt", `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${draft.scheduledAt.slice(11) || "09:00"}`); setShowFormCalendar(false); } }} /></div>, document.body)}
       </div>}
 
       <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="list-panel" aria-labelledby="list-title">
@@ -295,8 +360,8 @@ export function AgendaClient({ email }: { email: string }) {
           <div className="calendar-filter-actions">
             <div className="filter-anchor"><button className={`icon-button${dateFilter ? " filter-active" : ""}`} title="Filtrar por data" aria-label="Filtrar por data" aria-expanded={openFilter === "date"} onClick={() => setOpenFilter(openFilter === "date" ? null : "date")} type="button"><CalendarDays size={18} /></button>
               {openFilter === "date" && <div className="filter-menu date-filter-menu"><DayPicker locale={ptBR} mode="single" selected={selectedFilterDate} onSelect={(date) => { setDateFilter(date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : ""); setOpenFilter(null); }} />{dateFilter && <button className="filter-option" onClick={() => { setDateFilter(""); setOpenFilter(null); }} type="button">Limpar filtro</button>}</div>}</div>
-            <div className="filter-anchor"><button className={`icon-button${statusFilter ? " filter-active" : ""}`} title="Filtrar por status" aria-label="Filtrar por status" aria-expanded={openFilter === "status"} onClick={() => setOpenFilter(openFilter === "status" ? null : "status")} type="button"><SlidersHorizontal size={18} /></button>
-              {openFilter === "status" && <div className="filter-menu status-filter-menu">{[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))].map((option) => <button key={option.value} className={`filter-option${statusFilter === option.value ? " selected" : ""}`} onClick={() => { setStatusFilter(option.value); setOpenFilter(null); }} type="button">{option.label}</button>)}</div>}</div>
+            <div className="filter-anchor"><button className={`icon-button${statusFilter.length ? " filter-active" : ""}`} title="Filtrar por status" aria-label="Filtrar por status" aria-expanded={openFilter === "status"} onClick={() => setOpenFilter(openFilter === "status" ? null : "status")} type="button"><SlidersHorizontal size={18} /></button>
+              {openFilter === "status" && renderStatusFilter()}</div>
             <span className="filter-count">{appointments.length} {appointments.length === 1 ? "coleta" : "coletas"}</span>
           </div>
           <div className="period-navigation"><button className="icon-button" aria-label="Período anterior" onClick={() => movePeriod(-1)} type="button"><ChevronLeft size={18} /></button><h2 id="list-title">{displayPeriodLabel}</h2><button className="icon-button" aria-label="Próximo período" onClick={() => movePeriod(1)} type="button"><ChevronRight size={18} /></button></div>
@@ -321,6 +386,7 @@ export function AgendaClient({ email }: { email: string }) {
         </ul>{appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === (view === "month" ? selectedMobileDate : calendarDate).toDateString()).length === 0 && <p className="state-message">Nenhuma coleta neste dia.</p>}</SimpleBar>}</>}
       </motion.section>
       <button className="fab" aria-label="Agendar nova coleta" onClick={() => { resetForm(); setShowForm(true); }} type="button"><CalendarPlus aria-hidden size={24} /></button>
+      {hoveredEvent && createPortal(<div className="event-tooltip" role="tooltip" style={{ left: hoveredEvent.left, top: hoveredEvent.top }}><strong>{hoveredEvent.item.animal}</strong><span>{hoveredEvent.item.clinic} · {hoveredEvent.item.examType}</span><span>{toDisplayDate(hoveredEvent.item.scheduledAt)}</span>{hoveredEvent.item.notes && <p>{hoveredEvent.item.notes}</p>}</div>, document.body)}
     </div>
   );
 }
