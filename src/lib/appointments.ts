@@ -52,14 +52,21 @@ export function validationResponse(message: string, fields?: Record<string, stri
 }
 
 export async function ensureDemoAppointments(userId: string) {
-  if (await prisma.appointment.count({ where: { userId } })) return;
+  const existing = await prisma.appointment.findMany({ where: { userId }, select: { animal: true, clinic: true } });
   const first = new Date();
   first.setDate(first.getDate() + 1); first.setHours(10, 0, 0, 0);
   const second = new Date(first); second.setDate(second.getDate() + 1); second.setHours(14, 30, 0, 0);
   const third = new Date(second); third.setDate(third.getDate() + 1); third.setHours(9, 15, 0, 0);
-  await prisma.appointment.createMany({ data: [
+  const examples = [
     { clinic: "Clínica Patas & Cia", animal: "Luna", examType: "Hemograma", scheduledAt: first, status: "AGENDADO", notes: "Coleta em jejum.", userId },
     { clinic: "Vet Central", animal: "Thor", examType: "Bioquímico", scheduledAt: second, status: "AGENDADO", notes: "Confirmar responsável.", userId },
     { clinic: "Clínica Vida Animal", animal: "Mia", examType: "Cultura", scheduledAt: third, status: "COLETADO", notes: "Amostra encaminhada.", userId },
-  ] });
+    { clinic: "Bicho Feliz", animal: "Bento", examType: "Hemograma", scheduledAt: new Date(first.getFullYear(), first.getMonth(), first.getDate() + 2, 11, 0), status: "AGENDADO", notes: "Tutor virá pela manhã.", userId },
+    { clinic: "Vet Central", animal: "Nina", examType: "Ultrassom", scheduledAt: new Date(first.getFullYear(), first.getMonth(), first.getDate() + 4, 15, 0), status: "AGENDADO", notes: null, userId },
+    { clinic: "Patas & Cia", animal: "Max", examType: "Cultura", scheduledAt: new Date(first.getFullYear(), first.getMonth(), first.getDate() + 6, 9, 30), status: "COLETADO", notes: "Amostra recebida.", userId },
+    { clinic: "Vida Animal", animal: "Amora", examType: "Bioquímico", scheduledAt: new Date(first.getFullYear(), first.getMonth(), first.getDate() + 8, 13, 0), status: "AGENDADO", notes: "Jejum de 8 horas.", userId },
+    { clinic: "Clínica Horizonte", animal: "Fred", examType: "Hemograma", scheduledAt: new Date(first.getFullYear(), first.getMonth(), first.getDate() + 10, 16, 30), status: "CANCELADO", notes: "Remarcado pelo tutor.", userId },
+  ];
+  const missing = examples.filter((example) => !existing.some((item) => item.animal === example.animal && item.clinic === example.clinic));
+  if (missing.length) await prisma.appointment.createMany({ data: missing });
 }
