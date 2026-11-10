@@ -145,3 +145,18 @@ html, .modal-layer .form-panel { scrollbar-color: #70aa9c transparent; scrollbar
 .modal-layer .form-actions .secondary-button:hover { background: #dcebe0; }
 @media (max-width: 420px) { .modal-layer .form-actions { display: grid; grid-template-columns: 1fr 1fr; }.modal-layer .form-actions button { width: 100%; padding: 0 8px; } }
 @media (max-width: 760px) { .calendar-header { grid-template-columns: 1fr; }.period-navigation, .calendar-actions { grid-column: 1; justify-self: center; }.filter-popover .filters { grid-template-columns: 1fr; } }
+.calendar-filter-actions { grid-column: 1; grid-row: 1; justify-self: start; display: flex; align-items: center; gap: 8px; }
+.filter-anchor { position: relative; }
+.filter-count { margin-left: 6px; color: var(--muted); font-size: .82rem; white-space: nowrap; }
+.calendar-filter-actions .filter-active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.filter-menu { position: absolute; z-index: 80; top: calc(100% + 8px); left: 0; width: max-content; max-width: calc(100vw - 24px); padding: 8px; border: 1px solid var(--border); border-radius: 12px; background: var(--cream); box-shadow: 0 16px 36px rgba(22,55,42,.2); }
+.filter-menu .rdp { margin: 0; color: var(--foreground); --rdp-accent-color: var(--primary); }
+.status-filter-menu { min-width: 165px; }
+.filter-option { display: block; width: 100%; min-height: 36px; padding: 8px 12px; border: 0; border-radius: 8px; background: transparent; color: var(--foreground); font: inherit; text-align: left; cursor: pointer; }
+.filter-option:hover, .filter-option.selected { background: #dcebe0; color: var(--primary); }
+.modal-layer .form-panel { max-height: calc(100dvh - 32px); padding: 22px 28px; }
+.modal-layer .form-panel form { gap: 5px; margin-top: 16px; }
+.modal-layer .form-panel label { margin-top: 5px; }
+.modal-layer .form-panel textarea { min-height: 68px; }
+.modal-layer .form-actions { margin-top: 10px; }
+@media (max-width: 760px) { .calendar-filter-actions { grid-column: 1; justify-self: center; }.period-navigation { grid-row: 2; }.calendar-actions { grid-row: 3; } }
