@@ -1,8 +1,9 @@
 import { spawnSync } from "node:child_process";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const projectRoot = resolve(import.meta.dirname, "..");
+const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const testsDirectory = join(projectRoot, "tests");
 const tempRoot = await mkdtemp(join(testsDirectory, ".mutation-"));
 const tsxCli = join(projectRoot, "node_modules", "tsx", "dist", "cli.mjs");
