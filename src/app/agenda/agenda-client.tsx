@@ -304,6 +304,7 @@ export function AgendaClient({ email }: { email: string }) {
         </div>
         {loading && <p className="state-message">Carregando agenda...</p>}
         {fetchError && <p className="state-message form-error">{fetchError}</p>}
+        {!loading && !fetchError && appointments.length === 0 && <p className="state-message" role="status">Nenhuma coleta encontrada.</p>}
         {!loading && !fetchError && <><motion.div ref={calendarBoardRef} key={`${view}-${calendarDate.getFullYear()}-${calendarDate.getMonth()}-${calendarDate.getDate()}`} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: "easeOut" }} style={{ "--calendar-weeks": monthGridLength / 7 } as CSSProperties} className={`calendar-board calendar-${view}`}>
           {(view === "month" || view === "week") && ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => <span className="weekday" key={day}>{day}</span>)}
           {visibleDays.map((date) => {
