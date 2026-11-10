@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { CSSProperties, FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Columns3, Grid3X3, List, LogOut, Pencil, SlidersHorizontal, XCircle } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import SimpleBar from "simplebar-react";
@@ -76,6 +76,12 @@ export function AgendaClient({ email }: { email: string }) {
     : view === "week"
       ? `${weekStart.toLocaleDateString("pt-BR", { day: "numeric", month: "short" })} – ${visibleDays[6].toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}`
       : calendarDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  const today = new Date();
+  const isCurrentPeriod = view === "day"
+    ? calendarDate.toDateString() === today.toDateString()
+    : view === "week"
+      ? today >= weekStart && today < new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + 7)
+      : calendarDate.getFullYear() === today.getFullYear() && calendarDate.getMonth() === today.getMonth();
   function movePeriod(direction: number) {
     setCalendarDate((current) => view === "month"
       ? new Date(current.getFullYear(), current.getMonth() + direction, 1)
@@ -233,17 +239,17 @@ export function AgendaClient({ email }: { email: string }) {
             <span className="filter-count">{appointments.length} {appointments.length === 1 ? "coleta" : "coletas"}</span>
           </div>
           <div className="period-navigation"><button className="icon-button" aria-label="Período anterior" onClick={() => movePeriod(-1)} type="button"><ChevronLeft size={18} /></button><h2 id="list-title">{periodLabel}</h2><button className="icon-button" aria-label="Próximo período" onClick={() => movePeriod(1)} type="button"><ChevronRight size={18} /></button></div>
-          <div className="calendar-actions"><button className="today-button" onClick={() => setCalendarDate(new Date())} type="button">Hoje</button><nav className="view-switch" aria-label="Visualização do calendário">{(["day", "week", "month"] as const).map((item) => { const Icon = { day: List, week: Columns3, month: Grid3X3 }[item]; return <button key={item} title={{ day: "Dia", week: "Semana", month: "Mês" }[item]} aria-label={`Visualização de ${{ day: "dia", week: "semana", month: "mês" }[item]}`} aria-pressed={view === item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button"><Icon size={18} /></button>; })}</nav></div>
+          <div className="calendar-actions">{!isCurrentPeriod && <button className="today-button" onClick={() => setCalendarDate(new Date())} type="button">Hoje</button>}<nav className="view-switch" aria-label="Visualização do calendário">{(["day", "week", "month"] as const).map((item) => { const Icon = { day: List, week: Columns3, month: Grid3X3 }[item]; return <button key={item} title={{ day: "Dia", week: "Semana", month: "Mês" }[item]} aria-label={`Visualização de ${{ day: "dia", week: "semana", month: "mês" }[item]}`} aria-pressed={view === item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button"><Icon size={18} /></button>; })}</nav></div>
         </div>
         {loading && <p className="state-message">Carregando agenda...</p>}
         {fetchError && <p className="state-message form-error">{fetchError}</p>}
-        {!loading && !fetchError && <><div className={`calendar-board calendar-${view}`}>
+        {!loading && !fetchError && <><motion.div key={`${view}-${calendarDate.getFullYear()}-${calendarDate.getMonth()}-${calendarDate.getDate()}`} initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, ease: "easeOut" }} style={{ "--calendar-weeks": monthGridLength / 7 } as CSSProperties} className={`calendar-board calendar-${view}`}>
           {(view === "month" || view === "week") && ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => <span className="weekday" key={day}>{day}</span>)}
           {visibleDays.map((date) => {
             const entries = appointments.filter((item) => new Date(item.scheduledAt).toDateString() === date.toDateString());
             return <div className={`calendar-cell${view === "month" && date.getMonth() !== calendarDate.getMonth() ? " outside-month" : ""}`} key={date.toISOString()}><strong>{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}</strong>{entries.map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => startEdit(item)} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal}</button>)}</div>;
           })}
-        </div>{view === "day" && <SimpleBar className="appointments-scroll"><ul className="appointment-list">
+        </motion.div>{view === "day" && <SimpleBar className="appointments-scroll"><ul className="appointment-list">
           {appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === calendarDate.toDateString()).map((appointment) => <li key={appointment.id} className="appointment-item">
             <div className="appointment-main"><strong>{appointment.animal}</strong><span>{appointment.clinic} · {appointment.examType}</span><span>{toDisplayDate(appointment.scheduledAt)}</span>{appointment.notes && <small>{appointment.notes}</small>}</div>
             <div className="appointment-actions"><span className={`status status-${appointment.status.toLowerCase()}`}>{statusLabels[appointment.status]}</span><button aria-label={`Editar ${appointment.animal}`} className="icon-button" onClick={() => startEdit(appointment)} type="button"><Pencil aria-hidden size={16} /></button>{appointment.status !== "CANCELADO" && <button aria-label={`Cancelar ${appointment.animal}`} className="icon-button danger-button" disabled={pending} onClick={() => void cancelAppointment(appointment)} type="button"><XCircle aria-hidden size={16} /></button>}</div>

@@ -160,3 +160,13 @@ html, .modal-layer .form-panel { scrollbar-color: #70aa9c transparent; scrollbar
 .modal-layer .form-panel textarea { min-height: 68px; }
 .modal-layer .form-actions { margin-top: 10px; }
 @media (max-width: 760px) { .calendar-filter-actions { grid-column: 1; justify-self: center; }.period-navigation { grid-row: 2; }.calendar-actions { grid-row: 3; } }
+
+html, body { overflow-x: clip; }
+.agenda-topbar { position: sticky; top: 0; z-index: 90; }
+.calendar-month { height: calc(100dvh - 154px); min-height: 0; grid-template-rows: 32px repeat(var(--calendar-weeks), minmax(0, 1fr)); }
+.calendar-month .calendar-cell { min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #70aa9c transparent; }
+.view-switch button, .icon-button, .today-button, .filter-option, .calendar-event, .secondary-button, .text-button { transition: background-color .2s ease, color .2s ease, border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.view-switch button:hover, .today-button:hover, .filter-option:hover { transform: translateY(-1px); background: #dcebe0; }
+.view-switch button.active { transform: none; box-shadow: 0 3px 10px rgba(23,119,106,.18); }
+.calendar-event:hover, .icon-button:hover, .secondary-button:hover { transform: translateY(-1px); }
+@media (max-width: 760px) { .calendar-month { height: auto; min-height: calc(100dvh - 220px); grid-template-rows: 32px repeat(var(--calendar-weeks), minmax(100px, 1fr)); } }
