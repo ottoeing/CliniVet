@@ -65,6 +65,8 @@ export function AgendaClient({ email }: { email: string }) {
   const [openFilter, setOpenFilter] = useState<"date" | "status" | null>(null);
   const [view, setView] = useState<"day" | "week" | "month">("month");
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [selectedMobileDate, setSelectedMobileDate] = useState(new Date());
+  const [expandedDate, setExpandedDate] = useState<string | null>(null);
   const weekStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate() - calendarDate.getDay());
   const monthStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
   const monthGridStart = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - monthStart.getDay());
@@ -198,6 +200,7 @@ export function AgendaClient({ email }: { email: string }) {
     <div className="agenda-layout">
       <header className="agenda-topbar">
         <div className="brand"><CalendarDays aria-hidden size={25} /><div><p className="eyebrow">CliniVet</p><h1>Agenda de coletas</h1></div></div>
+        <nav className="mobile-view-switch view-switch" aria-label="Visualização do calendário">{(["day", "week", "month"] as const).map((item) => { const Icon = { day: List, week: Columns3, month: Grid3X3 }[item]; return <button key={item} aria-label={`Visualização de ${{ day: "dia", week: "semana", month: "mês" }[item]}`} aria-pressed={view === item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button"><Icon size={18} /></button>; })}</nav>
         <div className="session-info"><span>{email}</span><LogoutButton icon={<LogOut aria-hidden size={18} />} iconOnly /></div>
       </header>
       {showForm && <div className="modal-layer">
@@ -251,14 +254,15 @@ export function AgendaClient({ email }: { email: string }) {
           {(view === "month" || view === "week") && ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => <span className="weekday" key={day}>{day}</span>)}
           {visibleDays.map((date) => {
             const entries = appointments.filter((item) => new Date(item.scheduledAt).toDateString() === date.toDateString());
-            return <div className={`calendar-cell${view === "month" && date.getMonth() !== calendarDate.getMonth() ? " outside-month" : ""}`} key={date.toISOString()}><strong>{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}</strong>{entries.map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => startEdit(item)} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal}</button>)}</div>;
+            const dateKey = date.toDateString();
+            return <div className={`calendar-cell${view === "month" && date.getMonth() !== calendarDate.getMonth() ? " outside-month" : ""}${dateKey === selectedMobileDate.toDateString() ? " selected-day" : ""}`} key={date.toISOString()}><button className="calendar-day-number" aria-label={`Ver coletas de ${date.toLocaleDateString("pt-BR")}`} onClick={() => setSelectedMobileDate(date)} type="button">{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}{view === "month" && entries.length > 0 && <span className="day-event-dot" />}</button>{(view === "month" ? entries.slice(0, 3) : entries).map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => startEdit(item)} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal}</button>)}{view === "month" && entries.length > 3 && <><button className="more-events" aria-expanded={expandedDate === dateKey} onClick={() => setExpandedDate(expandedDate === dateKey ? null : dateKey)} type="button">Ver mais ({entries.length - 3})</button>{expandedDate === dateKey && <div className="more-events-popover"><div className="more-events-heading">{date.toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}<button aria-label="Fechar lista" onClick={() => setExpandedDate(null)} type="button">×</button></div><div className="more-events-list">{entries.map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => { setExpandedDate(null); startEdit(item); }} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal} · {item.examType}</button>)}</div></div>}</>}</div>;
           })}
-        </motion.div>{view === "day" && <SimpleBar className="appointments-scroll"><ul className="appointment-list">
-          {appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === calendarDate.toDateString()).map((appointment) => <li key={appointment.id} className="appointment-item">
+        </motion.div>{(view === "day" || view === "month") && <SimpleBar className={`appointments-scroll ${view === "month" ? "mobile-month-events" : ""}`}><div className="mobile-events-title">{(view === "month" ? selectedMobileDate : calendarDate).toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}</div><ul className="appointment-list">
+          {appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === (view === "month" ? selectedMobileDate : calendarDate).toDateString()).map((appointment) => <li key={appointment.id} className="appointment-item">
             <div className="appointment-main"><strong>{appointment.animal}</strong><span>{appointment.clinic} · {appointment.examType}</span><span>{toDisplayDate(appointment.scheduledAt)}</span>{appointment.notes && <small>{appointment.notes}</small>}</div>
             <div className="appointment-actions"><span className={`status status-${appointment.status.toLowerCase()}`}>{statusLabels[appointment.status]}</span><button aria-label={`Editar ${appointment.animal}`} className="icon-button" onClick={() => startEdit(appointment)} type="button"><Pencil aria-hidden size={16} /></button>{appointment.status !== "CANCELADO" && <button aria-label={`Cancelar ${appointment.animal}`} className="icon-button danger-button" disabled={pending} onClick={() => void cancelAppointment(appointment)} type="button"><XCircle aria-hidden size={16} /></button>}</div>
           </li>)}
-        </ul></SimpleBar>}</>}
+        </ul>{appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === (view === "month" ? selectedMobileDate : calendarDate).toDateString()).length === 0 && <p className="state-message">Nenhuma coleta neste dia.</p>}</SimpleBar>}</>}
       </motion.section>
       <button className="fab" aria-label="Agendar nova coleta" onClick={() => { resetForm(); setShowForm(true); }} type="button"><CalendarPlus aria-hidden size={24} /></button>
     </div>
