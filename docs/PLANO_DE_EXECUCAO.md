@@ -16,6 +16,8 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Criar login por e-mail e senha.
 - [x] Implementar sessão e logout.
 - [x] Proteger as rotas da agenda.
+- [x] Criar cards demonstrativos para cada conta recém-criada.
+- [x] Restringir a visualização e edição de agendamentos à própria conta.
 
 ## Regras de agendamento
 
@@ -32,6 +34,8 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Criar formulário reutilizável para criar e editar.
 - [x] Implementar cancelamento sem excluir o registro.
 - [x] Exibir estados de carregamento, erro e lista vazia.
+- [x] Indicar visualmente os campos obrigatórios.
+- [x] Aplicar interações de hover e identidade visual própria.
 - [ ] Revisar responsividade para celular e desktop.
 
 ## Qualidade e entrega

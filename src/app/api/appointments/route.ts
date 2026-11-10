@@ -14,7 +14,8 @@ function unauthorized() {
 }
 
 export async function GET(request: Request) {
-  if (!(await getSession())) return unauthorized();
+  const session = await getSession();
+  if (!session) return unauthorized();
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
 
   const appointments = await prisma.appointment.findMany({
     where: {
+      userId: session.userId,
       ...(status === "AGENDADO" || status === "COLETADO" || status === "CANCELADO"
         ? { status }
         : {}),
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
     return validationResponse(dateResult.error, { scheduledAt: [dateResult.error] });
   }
 
-  if (parsed.data.status === "AGENDADO" && (await hasScheduledConflict(dateResult.scheduledAt))) {
+  if (parsed.data.status === "AGENDADO" && (await hasScheduledConflict(dateResult.scheduledAt, session.userId))) {
     return validationResponse("Já existe uma coleta agendada neste horário.", {
       scheduledAt: ["Já existe uma coleta agendada neste horário."],
     });

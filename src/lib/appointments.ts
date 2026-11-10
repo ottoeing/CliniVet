@@ -33,10 +33,11 @@ export function parseScheduledAt(value: string): { scheduledAt: Date } | { error
   return { scheduledAt };
 }
 
-export async function hasScheduledConflict(scheduledAt: Date, excludedId?: string) {
+export async function hasScheduledConflict(scheduledAt: Date, userId: string, excludedId?: string) {
   const conflict = await prisma.appointment.findFirst({
     where: {
       scheduledAt,
+      userId,
       status: "AGENDADO",
       ...(excludedId ? { id: { not: excludedId } } : {}),
     },

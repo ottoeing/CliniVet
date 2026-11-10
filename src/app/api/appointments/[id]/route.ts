@@ -14,7 +14,8 @@ function unauthorized() {
 }
 
 export async function PATCH(request: Request, context: RouteContext<"/api/appointments/[id]">) {
-  if (!(await getSession())) return unauthorized();
+  const session = await getSession();
+  if (!session) return unauthorized();
 
   const { id } = await context.params;
   const body: unknown = await request.json().catch(() => null);
@@ -31,7 +32,7 @@ export async function PATCH(request: Request, context: RouteContext<"/api/appoin
     });
   }
 
-  const appointment = await prisma.appointment.findUnique({ where: { id }, select: { id: true } });
+  const appointment = await prisma.appointment.findFirst({ where: { id, userId: session.userId }, select: { id: true } });
   if (!appointment) return NextResponse.json({ message: "Agendamento não encontrado." }, { status: 404 });
 
   const dateResult = parseScheduledAt(scheduledAtValue);
@@ -41,7 +42,7 @@ export async function PATCH(request: Request, context: RouteContext<"/api/appoin
 
   if (
     parsed.data.status === "AGENDADO" &&
-    (await hasScheduledConflict(dateResult.scheduledAt, appointment.id))
+    (await hasScheduledConflict(dateResult.scheduledAt, session.userId, appointment.id))
   ) {
     return validationResponse("Já existe uma coleta agendada neste horário.", {
       scheduledAt: ["Já existe uma coleta agendada neste horário."],

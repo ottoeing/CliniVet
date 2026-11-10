@@ -163,15 +163,15 @@ export function AgendaClient() {
           <h2 id="form-title">{editingId ? "Editar coleta" : "Nova coleta"}</h2>
         </div>
         <form onSubmit={submitForm}>
-          <label htmlFor="clinic">Clínica</label>
+          <label htmlFor="clinic">Clínica <span className="required">*</span></label>
           <input id="clinic" value={draft.clinic} onChange={(e) => updateDraft("clinic", e.target.value)} required />
-          <label htmlFor="animal">Animal</label>
+          <label htmlFor="animal">Animal <span className="required">*</span></label>
           <input id="animal" value={draft.animal} onChange={(e) => updateDraft("animal", e.target.value)} required />
-          <label htmlFor="examType">Tipo de exame</label>
+          <label htmlFor="examType">Tipo de exame <span className="required">*</span></label>
           <input id="examType" value={draft.examType} onChange={(e) => updateDraft("examType", e.target.value)} required />
-          <label htmlFor="scheduledAt">Data e hora da coleta</label>
+          <label htmlFor="scheduledAt">Data e hora da coleta <span className="required">*</span></label>
           <input id="scheduledAt" type="datetime-local" min={minDateTime} value={draft.scheduledAt} onChange={(e) => updateDraft("scheduledAt", e.target.value)} required />
-          <label htmlFor="status">Status</label>
+          <label htmlFor="status">Status <span className="required">*</span></label>
           <select id="status" value={draft.status} onChange={(e) => updateDraft("status", e.target.value)}>
             {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
