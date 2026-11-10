@@ -17,6 +17,7 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Implementar sessão e logout.
 - [x] Proteger as rotas da agenda.
 - [x] Criar cards demonstrativos para cada conta recém-criada.
+- [x] Oferecer 20 coletas demonstrativas por conta, com 13 no mesmo dia para exercitar a grade e o "Ver mais".
 - [x] Restringir a visualização e edição de agendamentos à própria conta.
 
 ## Regras de agendamento

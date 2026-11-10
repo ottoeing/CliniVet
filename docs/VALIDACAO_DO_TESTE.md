@@ -10,6 +10,7 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 - [x] Validação no servidor: campos obrigatórios, data futura e conflito entre registros `AGENDADO` do mesmo usuário em `src/lib/appointments.ts` e nas rotas da API. Testes automatizados cobrem credenciais, campos e data.
 - [x] Estados de carregamento, erro e lista vazia presentes na agenda. Há regras de layout para celular e desktop em `src/app/globals.css`.
 - [x] Exercitar os fluxos de autenticação, filtros, criação, edição, cancelamento, conflito e isolamento entre contas pela API de produção com duas contas temporárias, removidas ao fim do teste.
+- [x] Cadastro criou 20 exemplos por conta, com pelo menos 10 no mesmo dia; o segundo login manteve a contagem e os horários `AGENDADO` não se repetiram.
 - [ ] Revisar visualmente os fluxos em navegador, nos dois tamanhos de tela. A automação da janela expirou nesta sessão.
 
 ## Diferenciais e entrega
