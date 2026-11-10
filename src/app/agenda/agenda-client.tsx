@@ -3,6 +3,7 @@
 import { CSSProperties, FormEvent, useCallback, useEffect, useState } from "react";
 import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, Columns3, Grid3X3, List, LogOut, Pencil, SlidersHorizontal, XCircle } from "lucide-react";
 import { DayPicker } from "react-day-picker";
+import { ptBR } from "react-day-picker/locale";
 import SimpleBar from "simplebar-react";
 import { motion } from "framer-motion";
 import "react-day-picker/style.css";
@@ -214,9 +215,8 @@ export function AgendaClient({ email }: { email: string }) {
           <label htmlFor="examType">Tipo de exame <span className="required">*</span></label>
           <input id="examType" value={draft.examType} onChange={(e) => updateDraft("examType", e.target.value)} required />
           <label htmlFor="scheduledAtDate">Data e hora da coleta <span className="required">*</span></label>
-          <div className="appointment-datetime"><div className="appointment-date-anchor"><button id="scheduledAtDate" className="date-trigger" aria-expanded={showFormCalendar} onClick={() => setShowFormCalendar((open) => !open)} type="button">{draft.scheduledAt ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "Selecionar data"}<CalendarDays size={18} /></button>
-            {showFormCalendar && <div className="appointment-date-menu"><DayPicker mode="single" selected={draft.scheduledAt ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`) : undefined} disabled={{ before: new Date() }} onSelect={(date) => { if (date) { updateDraft("scheduledAt", `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${draft.scheduledAt.slice(11) || "09:00"}`); setShowFormCalendar(false); } }} /></div>}
-          </div><input aria-label="Horário da coleta" type="time" value={draft.scheduledAt.slice(11)} onChange={(e) => updateDraft("scheduledAt", `${draft.scheduledAt.slice(0, 10)}T${e.target.value}`)} required /></div>
+          <div className="appointment-datetime"><button id="scheduledAtDate" className="date-trigger" aria-expanded={showFormCalendar} onClick={() => setShowFormCalendar((open) => !open)} type="button">{draft.scheduledAt && draft.scheduledAt.slice(0, 10) ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "Selecionar data"}<CalendarDays size={18} /></button>
+          <input aria-label="Horário da coleta no formato HH:MM" type="text" inputMode="numeric" placeholder="HH:MM" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" maxLength={5} title="Informe o horário no formato HH:MM" value={draft.scheduledAt.slice(11)} onChange={(e) => updateDraft("scheduledAt", `${draft.scheduledAt.slice(0, 10)}T${e.target.value}`)} required /></div>
           <label htmlFor="status">Status <span className="required">*</span></label>
           <select id="status" value={draft.status} onChange={(e) => updateDraft("status", e.target.value)}>
             {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -230,13 +230,14 @@ export function AgendaClient({ email }: { email: string }) {
           </div>
         </form>
         </section>
+        {showFormCalendar && <div className="appointment-calendar-layer"><button className="appointment-calendar-backdrop" aria-label="Fechar calendário" onClick={() => setShowFormCalendar(false)} type="button" /><div className="appointment-date-menu" role="dialog" aria-label="Selecionar data da coleta"><DayPicker locale={ptBR} mode="single" selected={draft.scheduledAt && draft.scheduledAt.slice(0, 10) ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`) : undefined} disabled={{ before: new Date() }} onSelect={(date) => { if (date) { updateDraft("scheduledAt", `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${draft.scheduledAt.slice(11) || "09:00"}`); setShowFormCalendar(false); } }} /></div></div>}
       </div>}
 
       <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="list-panel" aria-labelledby="list-title">
         <div className="list-header calendar-header">
           <div className="calendar-filter-actions">
             <div className="filter-anchor"><button className={`icon-button${dateFilter ? " filter-active" : ""}`} title="Filtrar por data" aria-label="Filtrar por data" aria-expanded={openFilter === "date"} onClick={() => setOpenFilter(openFilter === "date" ? null : "date")} type="button"><CalendarDays size={18} /></button>
-              {openFilter === "date" && <div className="filter-menu date-filter-menu"><DayPicker mode="single" selected={selectedFilterDate} onSelect={(date) => { setDateFilter(date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : ""); setOpenFilter(null); }} /><button className="filter-option" onClick={() => { setDateFilter(""); setOpenFilter(null); }} type="button">Todas as datas</button></div>}</div>
+              {openFilter === "date" && <div className="filter-menu date-filter-menu"><DayPicker locale={ptBR} mode="single" selected={selectedFilterDate} onSelect={(date) => { setDateFilter(date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : ""); setOpenFilter(null); }} /><button className="filter-option" onClick={() => { setDateFilter(""); setOpenFilter(null); }} type="button">Todas as datas</button></div>}</div>
             <div className="filter-anchor"><button className={`icon-button${statusFilter ? " filter-active" : ""}`} title="Filtrar por status" aria-label="Filtrar por status" aria-expanded={openFilter === "status"} onClick={() => setOpenFilter(openFilter === "status" ? null : "status")} type="button"><SlidersHorizontal size={18} /></button>
               {openFilter === "status" && <div className="filter-menu status-filter-menu">{[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))].map((option) => <button key={option.value} className={`filter-option${statusFilter === option.value ? " selected" : ""}`} onClick={() => { setStatusFilter(option.value); setOpenFilter(null); }} type="button">{option.label}</button>)}</div>}</div>
             <span className="filter-count">{appointments.length} {appointments.length === 1 ? "coleta" : "coletas"}</span>
