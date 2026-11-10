@@ -52,8 +52,8 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 ## Qualidade e entrega
 
 - [ ] Testar manualmente login, filtros, criação, edição e cancelamento.
-- [ ] Adicionar testes automatizados para as regras de validação.
-- [ ] Escrever README de execução, decisões e credenciais de demonstração.
-- [ ] Preencher a seção "Uso de IA" apenas com evidências reais do desenvolvimento.
-- [ ] Conferir variáveis de ambiente e ausência de segredos no Git.
+- [x] Adicionar testes automatizados para as regras de validação de credenciais, campos e data.
+- [x] Escrever README de execução, decisões e credenciais de demonstração.
+- [x] Preencher a seção "Uso de IA" apenas com evidências reais do desenvolvimento.
+- [x] Conferir variáveis de ambiente e ausência de segredos no Git.
 - [ ] Publicar o projeto (opcional).
