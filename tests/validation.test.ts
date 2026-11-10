@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { appointmentSchema, parseScheduledAt } from "../src/lib/appointments";
+import { getDraftDate, getDraftTime, withDraftDate, withDraftTime } from "../src/lib/appointment-datetime";
 import { credentialsSchema } from "../src/lib/credentials";
 
 test("exige e-mail válido e senha com pelo menos seis caracteres", () => {
@@ -28,4 +29,18 @@ test("rejeita data inválida ou passada e aceita horário futuro", () => {
   assert.equal("error" in parseScheduledAt("invalid date"), true);
   assert.equal("error" in parseScheduledAt(new Date(Date.now() - 60_000).toISOString()), true);
   assert.equal("scheduledAt" in parseScheduledAt(new Date(Date.now() + 86_400_000).toISOString()), true);
+});
+
+test("aceita data e hora em qualquer ordem sem exibir data inválida", () => {
+  const date = new Date(2030, 0, 5);
+  const timeFirst = withDraftTime("", "0915");
+  assert.equal(timeFirst, "T09:15");
+  assert.equal(getDraftDate(timeFirst), undefined);
+  assert.equal(getDraftTime(timeFirst), "09:15");
+  assert.equal(withDraftDate(timeFirst, date), "2030-01-05T09:15");
+
+  const dateFirst = withDraftDate("", date);
+  assert.equal(dateFirst, "2030-01-05T09:00");
+  assert.equal(withDraftTime(dateFirst, "1030"), "2030-01-05T10:30");
+  assert.equal(getDraftDate("2030-02-31T09:00"), undefined);
 });

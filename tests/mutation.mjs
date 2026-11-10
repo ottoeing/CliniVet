@@ -7,7 +7,7 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const testsDirectory = join(projectRoot, "tests");
 const tempRoot = await mkdtemp(join(testsDirectory, ".mutation-"));
 const tsxCli = join(projectRoot, "node_modules", "tsx", "dist", "cli.mjs");
-const files = ["src/lib/credentials.ts", "src/lib/appointments.ts", "tests/validation.test.ts"];
+const files = ["src/lib/credentials.ts", "src/lib/appointments.ts", "tests/validation.test.ts", "src/lib/appointment-datetime.ts"];
 const mutants = [
   { name: "e-mail sem formato válido", file: files[0], from: '.email("Informe um e-mail válido, com @ e domínio.")', to: "" },
   { name: "senha de um caractere", file: files[0], from: "password: z.string().min(6,", to: "password: z.string().min(1," },
@@ -16,6 +16,8 @@ const mutants = [
   { name: "data inválida aceita", file: files[1], from: "Number.isNaN(scheduledAt.getTime())", to: "false" },
   { name: "data passada aceita", file: files[1], from: "scheduledAt.getTime() <= Date.now()", to: "scheduledAt.getTime() >= Date.now()" },
   { name: "status desconhecido aceito", file: files[1], from: "z.enum(APPOINTMENT_STATUSES)", to: "z.string()" },
+  { name: "data ausente tratada como selecionada", file: files[3], from: "if (!match) return undefined;", to: "if (!match) return new Date();" },
+  { name: "hora digitada antes da data perdida", file: files[3], from: 'const separator = value.indexOf("T");', to: "const separator = -1;" },
 ];
 
 function runTests() {

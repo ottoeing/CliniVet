@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { createPortal } from "react-dom";
 import "react-day-picker/style.css";
 import "simplebar-react/dist/simplebar.min.css";
+import { getDraftDate, getDraftTime, withDraftDate, withDraftTime } from "@/lib/appointment-datetime";
 import { LogoutButton } from "../ui/logout-button";
 
 type Status = "AGENDADO" | "COLETADO" | "CANCELADO";
@@ -49,11 +50,6 @@ function toDisplayDate(isoDate: string) {
   return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(
     new Date(isoDate),
   );
-}
-
-function formatTimeInput(value: string) {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  return digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2)}` : digits;
 }
 
 export function AgendaClient({ email }: { email: string }) {
@@ -212,6 +208,10 @@ export function AgendaClient({ email }: { email: string }) {
     setDraft((current) => ({ ...current, [field]: value }));
   }
 
+  function updateDraftTime(value: string) {
+    setDraft((current) => ({ ...current, scheduledAt: withDraftTime(current.scheduledAt, value) }));
+  }
+
   function resetForm() {
     setEditingId(null);
     setDraft(emptyDraft);
@@ -314,6 +314,8 @@ export function AgendaClient({ email }: { email: string }) {
     </div>;
   }
 
+  const selectedDraftDate = getDraftDate(draft.scheduledAt);
+
   return (
     <div className="agenda-layout">
       <header className="agenda-topbar">
@@ -339,8 +341,8 @@ export function AgendaClient({ email }: { email: string }) {
           <label htmlFor="examType">Tipo de exame <span className="required">*</span></label>
           <input id="examType" value={draft.examType} onChange={(e) => updateDraft("examType", e.target.value)} required />
           <label htmlFor="scheduledAtDate">Data e hora da coleta <span className="required">*</span></label>
-          <div className="appointment-datetime"><button ref={dateTriggerRef} id="scheduledAtDate" className="date-trigger" aria-expanded={showFormCalendar} onClick={() => { if (showFormCalendar) setShowFormCalendar(false); else { updateDateMenuPosition(); setShowFormCalendar(true); } }} type="button">{draft.scheduledAt && draft.scheduledAt.slice(0, 10) ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "Selecionar data"}<CalendarDays size={18} /></button>
-          <input aria-label="Horário da coleta no formato HH:MM" type="text" inputMode="numeric" placeholder="HH:MM" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" maxLength={5} title="Informe o horário no formato HH:MM" value={draft.scheduledAt.slice(11)} onChange={(e) => updateDraft("scheduledAt", `${draft.scheduledAt.slice(0, 10)}T${formatTimeInput(e.target.value)}`)} required /></div>
+          <div className="appointment-datetime"><button ref={dateTriggerRef} id="scheduledAtDate" className="date-trigger" aria-expanded={showFormCalendar} onClick={() => { if (showFormCalendar) setShowFormCalendar(false); else { updateDateMenuPosition(); setShowFormCalendar(true); } }} type="button">{selectedDraftDate ? selectedDraftDate.toLocaleDateString("pt-BR") : "Selecionar data"}<CalendarDays size={18} /></button>
+          <input aria-label="Horário da coleta no formato HH:MM" type="text" inputMode="numeric" placeholder="HH:MM" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" maxLength={5} title="Informe o horário no formato HH:MM" value={getDraftTime(draft.scheduledAt)} onChange={(e) => updateDraftTime(e.target.value)} required /></div>
           <label htmlFor="status">Status <span className="required">*</span></label>
           <select id="status" value={draft.status} onChange={(e) => updateDraft("status", e.target.value)}>
             {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -354,7 +356,7 @@ export function AgendaClient({ email }: { email: string }) {
           </div>
         </form>
         </section>
-        {showFormCalendar && createPortal(<div ref={dateMenuRef} className="appointment-date-menu anchored-date-menu" role="dialog" aria-label="Selecionar data da coleta" style={dateMenuPosition}><DayPicker locale={ptBR} mode="single" selected={draft.scheduledAt && draft.scheduledAt.slice(0, 10) ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`) : undefined} disabled={{ before: new Date() }} onSelect={(date) => { if (date) { updateDraft("scheduledAt", `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}T${draft.scheduledAt.slice(11) || "09:00"}`); setShowFormCalendar(false); } }} /></div>, document.body)}
+        {showFormCalendar && createPortal(<div ref={dateMenuRef} className="appointment-date-menu anchored-date-menu" role="dialog" aria-label="Selecionar data da coleta" style={dateMenuPosition}><DayPicker locale={ptBR} mode="single" selected={selectedDraftDate} disabled={{ before: new Date() }} onSelect={(date) => { if (date) { setDraft((current) => ({ ...current, scheduledAt: withDraftDate(current.scheduledAt, date) })); setShowFormCalendar(false); } }} /></div>, document.body)}
       </div>}
 
       <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="list-panel" aria-labelledby="list-title">
