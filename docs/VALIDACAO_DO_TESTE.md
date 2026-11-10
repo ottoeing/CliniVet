@@ -23,13 +23,14 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 - [x] Docker Compose preparado com inicialização do banco e site por `docker compose up --build`; volume nomeado preserva o SQLite. Os arquivos YAML foram analisados, mas Docker não está instalado neste ambiente para exercitar o contêiner.
 - [ ] Executar o Compose e conferir persistência após reinício em um ambiente com Docker.
 - [x] Busca por clínica e paginação na API e em painel próprio da agenda. O teste da API verificou filtros, metadados, ordem e isolamento; o navegador confirmou resultados e troca de página.
+- [x] Revisar a busca em tela de computador e celular (390 × 844): botão alinhado ao campo, um único acesso junto dos filtros no celular e resultados roláveis dentro do modal.
 - [ ] Publicação online (diferencial opcional do PDF, retirado do escopo por decisão posterior de hospedar somente na máquina local).
 - [x] README com execução local e via Compose, stack, decisões e seção `Uso de IA` em primeira pessoa com prompts reais, erros corrigidos e evolução.
 - [x] `.env` e banco local ignorados pelo Git; apenas `.env.example` está versionado. A senha de demonstração passou a vir de `DEMO_PASSWORD`.
 - [x] Histórico contém commits pequenos e coesos.
 - [x] `npm run build` passou após empacotar as fontes localmente e executar a build fora do isolamento do Windows.
 - [ ] Avaliar atualização da cadeia do Prisma: `npm audit --omit=dev --audit-level=high` relatou 3 alertas altos em `deepmerge-ts@7.1.5`, dependência de `@prisma/config` via `@prisma/client@6.19.3`. O reparo automático propõe Prisma 7, uma atualização com quebra de compatibilidade; não foi aplicado nesta validação.
-- [x] Conferir uma cópia limpa do código versionado seguindo o README: `npm ci`, `.env`, `npm run db:generate`, `npm run db:setup` e `npm run dev`; a página `/login` respondeu HTTP 200. O `db:setup` prepara o arquivo SQLite antes da migração, necessário neste Windows.
+- [x] Conferir uma cópia limpa do código versionado seguindo o README: `npm ci`, `.env`, `npm run db:generate`, `npm run db:setup` e `npm run dev`; a página `/login` respondeu HTTP 200. A verificação foi repetida após a correção da busca. O `db:setup` prepara o arquivo SQLite antes da migração, necessário neste Windows.
 - [x] Commits recentes enviados para `https://github.com/ottoeing/CliniVet`.
 - [ ] Gerar o iniciador `.exe` pedido anteriormente; a publicação .NET depende do NuGet, inacessível nesta sessão. O script e o código do iniciador ainda estão locais.
 - [ ] Enviar o link do repositório ao RH. Envio externo deve ser feito pelo candidato.
