@@ -1,7 +1,14 @@
 "use client";
 
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
-import { CalendarPlus, Pencil, XCircle } from "lucide-react";
+import { CalendarDays, CalendarPlus, ChevronLeft, ChevronRight, LogOut, Pencil, XCircle } from "lucide-react";
+import { DayPicker } from "react-day-picker";
+import Select from "react-select";
+import SimpleBar from "simplebar-react";
+import { motion } from "framer-motion";
+import "react-day-picker/style.css";
+import "simplebar-react/dist/simplebar.min.css";
+import { LogoutButton } from "../ui/logout-button";
 
 type Status = "AGENDADO" | "COLETADO" | "CANCELADO";
 type Appointment = {
@@ -43,7 +50,7 @@ function toDisplayDate(isoDate: string) {
   );
 }
 
-export function AgendaClient() {
+export function AgendaClient({ email }: { email: string }) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
@@ -55,7 +62,26 @@ export function AgendaClient() {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [showForm, setShowForm] = useState(false);
   const [view, setView] = useState<"day" | "week" | "month">("month");
-  const [calendarDate] = useState(new Date());
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const weekStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), calendarDate.getDate() - calendarDate.getDay());
+  const monthStart = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1);
+  const monthGridStart = new Date(monthStart.getFullYear(), monthStart.getMonth(), 1 - monthStart.getDay());
+  const monthGridLength = Math.ceil((monthStart.getDay() + new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate()) / 7) * 7;
+  const visibleDays = Array.from({ length: view === "day" ? 1 : view === "week" ? 7 : monthGridLength }, (_, index) => {
+    const base = view === "day" ? calendarDate : view === "week" ? weekStart : monthGridStart;
+    return new Date(base.getFullYear(), base.getMonth(), base.getDate() + index);
+  });
+  const periodLabel = view === "day"
+    ? calendarDate.toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })
+    : view === "week"
+      ? `${weekStart.toLocaleDateString("pt-BR", { day: "numeric", month: "short" })} – ${visibleDays[6].toLocaleDateString("pt-BR", { day: "numeric", month: "short", year: "numeric" })}`
+      : calendarDate.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+  function movePeriod(direction: number) {
+    setCalendarDate((current) => view === "month"
+      ? new Date(current.getFullYear(), current.getMonth() + direction, 1)
+      : new Date(current.getFullYear(), current.getMonth(), current.getDate() + direction * (view === "week" ? 7 : 1)));
+  }
+  const selectedFilterDate = dateFilter ? new Date(`${dateFilter}T12:00:00`) : undefined;
 
   const loadAppointments = useCallback(async () => {
     setLoading(true);
@@ -162,6 +188,11 @@ export function AgendaClient() {
 
   return (
     <div className="agenda-layout">
+      <header className="agenda-topbar">
+        <div className="brand"><CalendarDays aria-hidden size={25} /><div><p className="eyebrow">CliniVet</p><h1>Agenda de coletas</h1></div></div>
+        <nav className="view-switch" aria-label="Visualização do calendário">{(["day", "week", "month"] as const).map((item) => <button key={item} aria-pressed={view === item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button">{{ day: "Dia", week: "Semana", month: "Mês" }[item]}</button>)}</nav>
+        <div className="session-info"><span>{email}</span><LogoutButton icon={<LogOut aria-hidden size={16} />} /></div>
+      </header>
       {showForm && <section className="panel form-panel" aria-labelledby="form-title">
         <div className="panel-title">
           <CalendarPlus aria-hidden size={22} />
@@ -190,32 +221,30 @@ export function AgendaClient() {
         </form>
       </section>}
 
-      <section className="panel list-panel" aria-labelledby="list-title">
-        <div className="list-header">
-          <div><p className="eyebrow">Acompanhamento</p><h2 id="list-title">Coletas agendadas</h2></div>
-          <div className="view-switch">{(["day", "week", "month"] as const).map((item) => <button key={item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button">{{ day: "Dia", week: "Semana", month: "Mês" }[item]}</button>)}</div>
+      <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="list-panel" aria-labelledby="list-title">
+        <div className="list-header calendar-header">
+          <div className="period-navigation"><button className="icon-button" aria-label="Período anterior" onClick={() => movePeriod(-1)} type="button"><ChevronLeft size={18} /></button><h2 id="list-title">{periodLabel}</h2><button className="icon-button" aria-label="Próximo período" onClick={() => movePeriod(1)} type="button"><ChevronRight size={18} /></button></div>
+          <button className="text-button" onClick={() => setCalendarDate(new Date())} type="button">Hoje</button>
         </div>
         <div className="filters">
-          <label>Data<input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} /></label>
-          <label>Status<select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="">Todos</option>{Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+          <label>Data<details className="date-picker"><summary>{selectedFilterDate ? selectedFilterDate.toLocaleDateString("pt-BR") : "Todas as datas"}</summary><DayPicker mode="single" selected={selectedFilterDate} onSelect={(date) => setDateFilter(date ? date.toISOString().slice(0, 10) : "")} /></details></label>
+          <label>Status<Select instanceId="status-filter" value={[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))].find((option) => option.value === statusFilter)} onChange={(option) => setStatusFilter(option?.value ?? "")} options={[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))]} classNamePrefix="cv-select" /></label>
         </div>
         {loading && <p className="state-message">Carregando agenda...</p>}
         {fetchError && <p className="state-message form-error">{fetchError}</p>}
-        {!loading && !fetchError && appointments.length === 0 && <p className="state-message">Nenhuma coleta encontrada para estes filtros.</p>}
-        {!loading && !fetchError && appointments.length > 0 && <><div className={`calendar-board calendar-${view}`}>
-          {view === "month" && ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => <span className="weekday" key={day}>{day}</span>)}
-          {Array.from({ length: view === "day" ? 1 : view === "week" ? 7 : new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate() }, (_, index) => {
-            const date = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), view === "day" ? calendarDate.getDate() : view === "week" ? calendarDate.getDate() + index : index + 1);
+        {!loading && !fetchError && <><div className={`calendar-board calendar-${view}`}>
+          {(view === "month" || view === "week") && ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map((day) => <span className="weekday" key={day}>{day}</span>)}
+          {visibleDays.map((date) => {
             const entries = appointments.filter((item) => new Date(item.scheduledAt).toDateString() === date.toDateString());
-            return <div className="calendar-cell" key={date.toISOString()}><strong>{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}</strong>{entries.map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => startEdit(item)} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal}</button>)}</div>;
+            return <div className={`calendar-cell${view === "month" && date.getMonth() !== calendarDate.getMonth() ? " outside-month" : ""}`} key={date.toISOString()}><strong>{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}</strong>{entries.map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => startEdit(item)} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal}</button>)}</div>;
           })}
-        </div><ul className="appointment-list">
-          {appointments.map((appointment) => <li key={appointment.id} className="appointment-item">
+        </div>{view === "day" && <SimpleBar className="appointments-scroll"><ul className="appointment-list">
+          {appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === calendarDate.toDateString()).map((appointment) => <li key={appointment.id} className="appointment-item">
             <div className="appointment-main"><strong>{appointment.animal}</strong><span>{appointment.clinic} · {appointment.examType}</span><span>{toDisplayDate(appointment.scheduledAt)}</span>{appointment.notes && <small>{appointment.notes}</small>}</div>
             <div className="appointment-actions"><span className={`status status-${appointment.status.toLowerCase()}`}>{statusLabels[appointment.status]}</span><button aria-label={`Editar ${appointment.animal}`} className="icon-button" onClick={() => startEdit(appointment)} type="button"><Pencil aria-hidden size={16} /></button>{appointment.status !== "CANCELADO" && <button aria-label={`Cancelar ${appointment.animal}`} className="icon-button danger-button" disabled={pending} onClick={() => void cancelAppointment(appointment)} type="button"><XCircle aria-hidden size={16} /></button>}</div>
           </li>)}
-        </ul></>}
-      </section>
+        </ul></SimpleBar>}</>}
+      </motion.section>
       <button className="fab" aria-label="Agendar nova coleta" onClick={() => { resetForm(); setShowForm(true); }} type="button"><CalendarPlus aria-hidden size={24} /></button>
     </div>
   );
