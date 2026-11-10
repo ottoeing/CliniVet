@@ -1,14 +1,4 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+:root { --background: #f5f7fb; --foreground: #172033; --primary: #2361d8; --muted: #63708a; --border: #d9e0ed; --danger: #b42318; }
 
 html {
   height: 100%;
@@ -26,7 +16,7 @@ body {
   flex-direction: column;
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -42,8 +32,23 @@ a {
   text-decoration: none;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}
+.auth-shell, .agenda-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+.auth-card, .agenda-card { width: min(100%, 440px); background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 32px; box-shadow: 0 18px 45px rgba(27, 43, 75, .1); }
+.auth-card h1, .agenda-card h1 { margin: 6px 0 8px; font-size: 1.65rem; letter-spacing: -.03em; }
+.eyebrow { color: var(--primary); font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; }
+.muted { color: var(--muted); line-height: 1.55; }
+form { display: grid; gap: 8px; margin-top: 24px; }
+label { font-size: .9rem; font-weight: 650; margin-top: 8px; }
+.input-with-icon { display: flex; align-items: center; gap: 10px; border: 1px solid var(--border); border-radius: 9px; padding: 0 12px; color: var(--muted); }
+input { width: 100%; min-height: 44px; border: 0; outline: 0; font: inherit; color: var(--foreground); }
+.primary-button, .secondary-button { min-height: 44px; border: 0; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: inherit; font-weight: 700; cursor: pointer; }
+.primary-button { margin-top: 16px; background: var(--primary); color: #fff; }
+.secondary-button { margin-top: 20px; padding: 0 14px; background: #e9effc; color: #174da9; }
+button:disabled { cursor: not-allowed; opacity: .7; }
+.field-error, .form-error { font-size: .84rem; line-height: 1.35; color: var(--danger); }
+.form-error { margin-top: 8px; }
+.auth-switch { margin-top: 24px; color: var(--muted); font-size: .9rem; }
+.auth-switch a { color: var(--primary); font-weight: 700; }
+.agenda-heading { display: flex; align-items: center; gap: 12px; color: var(--primary); margin-bottom: 20px; }
+.agenda-heading h1 { color: var(--foreground); }
+@media (max-width: 480px) { .auth-shell, .agenda-shell { padding: 16px; } .auth-card, .agenda-card { padding: 24px; } }

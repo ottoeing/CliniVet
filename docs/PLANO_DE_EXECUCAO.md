@@ -13,9 +13,9 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 
 ## Autenticação
 
-- [ ] Criar login por e-mail e senha.
-- [ ] Implementar sessão e logout.
-- [ ] Proteger as rotas da agenda.
+- [x] Criar login por e-mail e senha.
+- [x] Implementar sessão e logout.
+- [x] Proteger as rotas da agenda.
 
 ## Regras de agendamento
 
