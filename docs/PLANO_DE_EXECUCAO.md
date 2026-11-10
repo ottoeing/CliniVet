@@ -32,6 +32,7 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 
 - [x] Construir a listagem ordenada pela data/hora da coleta.
 - [x] Adicionar filtros por status e data.
+- [x] Permitir selecionar vários status no mesmo filtro.
 - [x] Criar formulário reutilizável para criar e editar.
 - [x] Implementar cancelamento sem excluir o registro.
 - [x] Exibir estados de carregamento, erro e lista vazia.
@@ -50,6 +51,9 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Adaptar o mês para celular com seleção de dia e lista rolável de eventos.
 - [x] Mostrar somente o mês no celular, com filtros no cabeçalho compacto.
 - [x] Mostrar eventos excedentes do mês em "Ver mais" no desktop.
+- [x] Alinhar "Ver mais" à célula do dia e mostrar descrições fora da área rolável.
+- [x] Mostrar editar e cancelar sobre o card apenas no hover ou foco.
+- [x] Ancorar o seletor de data do formulário ao respectivo campo.
 - [ ] Revisar responsividade para celular e desktop.
 
 ## Qualidade e entrega

@@ -27,7 +27,7 @@ Abra [http://localhost:3000](http://localhost:3000). O banco fica em `prisma/dev
 - Cadastro e login por e-mail e senha; respostas de login não revelam qual credencial está errada.
 - Agenda em dia, semana e mês no computador; mês com lista do dia selecionado no celular.
 - Criação, edição e cancelamento de coletas. Cancelar mantém o registro com status `Cancelado`.
-- Filtros por data e status, com registros limitados à conta autenticada.
+- Filtros por data e por múltiplos status, com registros limitados à conta autenticada.
 - Cada conta nova recebe 20 coletas de exemplo, incluindo 13 no mesmo dia; o segundo login não duplica os exemplos.
 - Validação de campos obrigatórios, data futura e conflito entre duas coletas `Agendado` no mesmo horário.
 
