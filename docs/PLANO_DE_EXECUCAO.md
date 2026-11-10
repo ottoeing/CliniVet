@@ -54,6 +54,8 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Alinhar "Ver mais" à célula do dia e mostrar descrições fora da área rolável.
 - [x] Mostrar editar e cancelar sobre o card apenas no hover ou foco.
 - [x] Agrupar editar e cancelar no canto do card sem sobreposição visual.
+- [x] Manter os controles de "Ver mais" dentro da borda do próprio card.
+- [x] Alinhar nome, status e controles no topo dos cards da agenda no celular.
 - [x] Remover a listagem duplicada abaixo da visualização diária no desktop.
 - [x] Ancorar o seletor de data do formulário ao respectivo campo.
 - [x] Dar espaço ao título do mês e usar inicial maiúscula nos seletores de data.
