@@ -204,13 +204,17 @@ html, body { overflow-x: clip; }
 .calendar-week .calendar-cell { min-height: 280px; }
 .calendar-week { min-height: 0; }
 .calendar-day, .calendar-week { margin-bottom: 0; }
-.calendar-event-wrap { position: relative; min-width: 0; }
-.calendar-event-wrap .calendar-event { width: 100%; min-width: 0; display: flex; align-items: center; gap: 5px; }
+.calendar-board .calendar-event-wrap { position: relative; min-width: 0; min-height: 31px; margin-top: 6px; border-left: 3px solid var(--primary); border-radius: 5px; background: #f9faf7; box-shadow: inset 0 0 0 1px var(--border); transition: background-color .2s ease, box-shadow .2s ease; }
+.calendar-board .calendar-event-wrap.event-coletado { border-left-color: #d39a34; }
+.calendar-board .calendar-event-wrap.event-cancelado { border-left-color: var(--danger); }
+.calendar-board .calendar-event-wrap:hover { background: #edf5ef; box-shadow: inset 0 0 0 1px #a9c8b9; }
+.calendar-board .calendar-event-wrap .calendar-event { width: 100%; min-width: 0; min-height: 31px; margin: 0; padding: 6px 8px; display: flex; align-items: center; gap: 5px; border: 0; border-radius: 0; background: transparent; color: var(--foreground); box-shadow: none; transform: none; }
+.calendar-board .calendar-event-wrap .calendar-event:hover { background: transparent; box-shadow: none; transform: none; }
 .calendar-event-wrap:hover .calendar-event, .calendar-event-wrap:focus-within .calendar-event { padding-right: 52px; }
 .calendar-event-wrap:has(.event-action:only-child):hover .calendar-event, .calendar-event-wrap:has(.event-action:only-child):focus-within .calendar-event { padding-right: 30px; }
 .calendar-event-wrap .event-time { flex: none; font-weight: 700; }
 .calendar-event-wrap .event-animal { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.event-action-group { position: absolute; top: 8px; right: 5px; display: flex; align-items: center; gap: 2px; padding: 1px; border-radius: 6px; background: #f9faf7; box-shadow: 0 0 0 1px var(--border); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.event-action-group { position: absolute; top: 50%; right: 4px; display: flex; align-items: center; gap: 2px; padding: 0; border-radius: 4px; background: #f9faf7; opacity: 0; pointer-events: none; transform: translateY(-50%); transition: opacity .2s ease; }
 .calendar-event-wrap:hover .event-action-group, .calendar-event-wrap:focus-within .event-action-group { opacity: 1; pointer-events: auto; }
 .event-action { display: grid; place-items: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 4px; color: var(--primary); background: transparent; cursor: pointer; transition: background-color .2s ease, transform .2s ease; }
 .event-action:hover { background: #dcebe0; transform: translateY(-1px); }
@@ -226,8 +230,8 @@ html, body { overflow-x: clip; }
 .filter-menu .rdp-selected .rdp-day_button, .appointment-date-menu .rdp-selected .rdp-day_button { border-color: var(--primary); color: var(--primary); }
 .calendar-month .calendar-cell { position: relative; overflow: visible; }
 .calendar-month .calendar-cell:hover { z-index: 6; }
-.calendar-month .calendar-event-wrap .calendar-event { min-height: 25px; margin-top: 3px; padding-top: 3px; padding-bottom: 3px; }
-.calendar-month .event-action-group { top: 5px; }
+.calendar-month .calendar-event-wrap { min-height: 25px; margin-top: 3px; }
+.calendar-board.calendar-month .calendar-event-wrap .calendar-event { min-height: 25px; padding: 3px 6px; }
 .calendar-month .more-events { margin-top: 2px; }
 @media (max-width: 760px) { .calendar-month .calendar-event-wrap { display: none; } }
 .more-events { margin-top: 5px; border: 0; background: transparent; color: var(--primary); font: inherit; font-size: .75rem; font-weight: 700; cursor: pointer; }
@@ -281,12 +285,12 @@ html, body { overflow-x: clip; }
   .mobile-month-events .appointment-list { gap: 7px; }
   .mobile-month-events .appointment-item { padding: 9px 11px; gap: 7px; border-radius: 10px; }
   .mobile-month-events .appointment-main { gap: 1px; }
-  .mobile-month-events .appointment-main strong { font-size: .94rem; }
+  .mobile-month-events .appointment-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-width: 0; }
+  .mobile-month-events .appointment-heading strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .94rem; }
   .mobile-month-events .appointment-main span, .mobile-month-events .appointment-main small { font-size: .76rem; }
-  .mobile-month-events .appointment-actions { gap: 5px; }
-  .mobile-month-events .appointment-actions { order: -1; align-self: flex-start; justify-content: flex-start; width: 100%; margin-bottom: 2px; }
-  .mobile-month-events .status { order: 3; margin-left: 4px; }
-  .mobile-month-events .icon-button { width: 30px; height: 30px; }
+  .mobile-month-events .appointment-actions { flex: none; justify-content: flex-end; align-items: center; gap: 5px; width: auto; margin: 0; }
+  .mobile-month-events .status { flex: none; margin: 0; white-space: nowrap; }
+  .mobile-month-events .icon-button { flex: none; width: 28px; height: 28px; }
   .agenda-page:has(.calendar-week) { height: 100dvh; min-height: 0; overflow: hidden; }
   .agenda-page:has(.calendar-week) .agenda-layout { height: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 0; }
   .agenda-page:has(.calendar-week) .list-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }

@@ -305,8 +305,8 @@ export function AgendaClient({ email }: { email: string }) {
   }
 
   function renderCalendarEvent(item: Appointment) {
-    return <div className="calendar-event-wrap" key={item.id} onMouseEnter={(event) => showEventTooltip(item, event.currentTarget)} onMouseLeave={() => setHoveredEvent(null)} onFocusCapture={(event) => showEventTooltip(item, event.currentTarget)} onBlurCapture={() => setHoveredEvent(null)}>
-      <button className={`calendar-event event-${item.status.toLowerCase()}`} onClick={() => startEdit(item)} type="button"><span className="event-time">{toDisplayDate(item.scheduledAt).slice(-5)}</span><span className="event-animal">{item.animal}</span></button>
+    return <div className={`calendar-event-wrap event-${item.status.toLowerCase()}`} key={item.id} onMouseEnter={(event) => showEventTooltip(item, event.currentTarget)} onMouseLeave={() => setHoveredEvent(null)} onFocusCapture={(event) => showEventTooltip(item, event.currentTarget)} onBlurCapture={() => setHoveredEvent(null)}>
+      <button className="calendar-event" onClick={() => startEdit(item)} type="button"><span className="event-time">{toDisplayDate(item.scheduledAt).slice(-5)}</span><span className="event-animal">{item.animal}</span></button>
       <span className="event-action-group">
         <button className="event-action" aria-label={`Editar ${item.animal}`} onClick={() => startEdit(item)} type="button"><Pencil size={14} /></button>
         {item.status !== "CANCELADO" && <button className="event-action event-action-danger" aria-label={`Cancelar ${item.animal}`} disabled={pending} onClick={() => void cancelAppointment(item)} type="button"><XCircle size={14} /></button>}
@@ -382,8 +382,8 @@ export function AgendaClient({ email }: { email: string }) {
           })}
         </motion.div>{view === "month" && <SimpleBar className="appointments-scroll mobile-month-events"><div className="mobile-events-title">{selectedMobileDate.toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}</div><ul className="appointment-list">
           {appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === selectedMobileDate.toDateString()).map((appointment) => <li key={appointment.id} className="appointment-item">
-            <div className="appointment-main"><strong>{appointment.animal}</strong><span>{appointment.clinic} · {appointment.examType}</span><span>{toDisplayDate(appointment.scheduledAt)}</span>{appointment.notes && <small>{appointment.notes}</small>}</div>
-            <div className="appointment-actions"><span className={`status status-${appointment.status.toLowerCase()}`}>{statusLabels[appointment.status]}</span><button aria-label={`Editar ${appointment.animal}`} className="icon-button" onClick={() => startEdit(appointment)} type="button"><Pencil aria-hidden size={16} /></button>{appointment.status !== "CANCELADO" && <button aria-label={`Cancelar ${appointment.animal}`} className="icon-button danger-button" disabled={pending} onClick={() => void cancelAppointment(appointment)} type="button"><XCircle aria-hidden size={16} /></button>}</div>
+            <div className="appointment-heading"><strong>{appointment.animal}</strong><div className="appointment-actions"><span className={`status status-${appointment.status.toLowerCase()}`}>{statusLabels[appointment.status]}</span><button aria-label={`Editar ${appointment.animal}`} className="icon-button" onClick={() => startEdit(appointment)} type="button"><Pencil aria-hidden size={16} /></button>{appointment.status !== "CANCELADO" && <button aria-label={`Cancelar ${appointment.animal}`} className="icon-button danger-button" disabled={pending} onClick={() => void cancelAppointment(appointment)} type="button"><XCircle aria-hidden size={16} /></button>}</div></div>
+            <div className="appointment-main"><span>{appointment.clinic} · {appointment.examType}</span><span>{toDisplayDate(appointment.scheduledAt)}</span>{appointment.notes && <small>{appointment.notes}</small>}</div>
           </li>)}
         </ul>{appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === selectedMobileDate.toDateString()).length === 0 && <p className="state-message">Nenhuma coleta neste dia.</p>}</SimpleBar>}</>}
       </motion.section>
