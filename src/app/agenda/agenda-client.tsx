@@ -193,7 +193,9 @@ export function AgendaClient({ email }: { email: string }) {
         <nav className="view-switch" aria-label="Visualização do calendário">{(["day", "week", "month"] as const).map((item) => <button key={item} aria-pressed={view === item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button">{{ day: "Dia", week: "Semana", month: "Mês" }[item]}</button>)}</nav>
         <div className="session-info"><span>{email}</span><LogoutButton icon={<LogOut aria-hidden size={16} />} /></div>
       </header>
-      {showForm && <section className="panel form-panel" aria-labelledby="form-title">
+      {showForm && <div className="modal-layer">
+        <button className="modal-backdrop" aria-label="Fechar formulário" onClick={resetForm} type="button" />
+        <section className="panel form-panel" role="dialog" aria-modal="true" aria-labelledby="form-title">
         <div className="panel-title">
           <CalendarPlus aria-hidden size={22} />
           <h2 id="form-title">{editingId ? "Editar coleta" : "Nova coleta"}</h2>
@@ -219,7 +221,8 @@ export function AgendaClient({ email }: { email: string }) {
             <button className="text-button" onClick={resetForm} type="button">Cancelar</button>
           </div>
         </form>
-      </section>}
+        </section>
+      </div>}
 
       <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="list-panel" aria-labelledby="list-title">
         <div className="list-header calendar-header">
