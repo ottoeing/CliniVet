@@ -12,13 +12,14 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 - [x] Exercitar os fluxos de autenticação, filtros, criação, edição, cancelamento, conflito e isolamento entre contas pela API de produção com duas contas temporárias, removidas ao fim do teste.
 - [x] Cadastro criou 20 exemplos por conta, com pelo menos 10 no mesmo dia; o segundo login manteve a contagem e os horários `AGENDADO` não se repetiram.
 - [x] Revisar em navegador a agenda no computador (1280 × 720) e no celular (390 × 844): calendário, filtro de status múltiplo, lista do dia, modal de criação e edição, além do horário `99:99` rejeitado pelo campo. Uma conta temporária foi removida após o teste.
+- [x] Reproduzir no navegador o formulário novo com horário antes da data e data antes do horário: ambos mantiveram valores válidos e não exibiram “Invalid Date”. A conta temporária desse teste também foi removida.
 
 ## Diferenciais e entrega
 
 - [x] Next.js full stack com TypeScript estrito (`tsconfig.json`), Prisma e SQLite.
-- [x] Testes automatizados de validação em `tests/validation.test.ts`: 3 passaram, incluindo hífen antes do `@`.
+- [x] Testes automatizados de validação em `tests/validation.test.ts`: 4 passaram, incluindo hífen antes do `@` e preenchimento de data/hora em ambas as ordens.
 - [x] Teste de integração das rotas, incluindo erros de cadastro, login genérico, autorização, filtros, conflito na criação e edição, cancelamento e logout, em `tests/api-smoke.mjs`.
-- [x] Teste de mutação direcionado em `tests/mutation.mjs`: 7 de 7 mutantes detectados por falhas de asserção. Escopo: regras de e-mail, senha, campos obrigatórios, data e status.
+- [x] Teste de mutação direcionado em `tests/mutation.mjs`: 9 de 9 mutantes detectados por falhas de asserção. Escopo: regras de e-mail, senha, campos obrigatórios, data, hora e status.
 - [ ] Docker ou Compose para iniciar com um comando (opcional no enunciado).
 - [ ] Busca por clínica e paginação (opcional no enunciado).
 - [ ] Publicação online (opcional no enunciado).
@@ -36,8 +37,8 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 
 - `npm run lint` — passou.
 - `npx tsc --noEmit` — passou.
-- `npm run test:unit` — 3 testes passaram.
-- `npm run test:mutation` — 7 de 7 mutantes detectados.
+- `npm run test:unit` — 4 testes passaram.
+- `npm run test:mutation` — 9 de 9 mutantes detectados.
 - `npm run db:setup` — passou em banco novo e no banco existente, sem duplicar migrações.
 - `npm run test:api` — passou contra a aplicação compilada; as contas de teste foram removidas.
 - `npm run build` — passou fora do isolamento do Windows, com fontes locais.

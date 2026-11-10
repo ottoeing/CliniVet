@@ -49,6 +49,7 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Personalizar a rolagem do aplicativo.
 - [x] Ampliar os exemplos de coletas por conta e uniformizar os cartões do calendário.
 - [x] Usar seletor de data integrado ao tema no formulário.
+- [x] Permitir preencher horário antes ou depois da data sem exibir “Invalid Date”.
 - [x] Centralizar a navegação de datas e compactar visões e filtros em ícones.
 - [x] Manter o cabeçalho visível durante a rolagem.
 - [x] Adaptar o mês para celular com seleção de dia e lista rolável de eventos.
