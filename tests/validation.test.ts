@@ -9,6 +9,9 @@ test("exige e-mail válido e senha com pelo menos seis caracteres", () => {
   assert.equal(credentialsSchema.safeParse({ email: "pessoa@", password: "123456" }).success, false);
   assert.equal(credentialsSchema.safeParse({ email: "pessoa@exemplo.com", password: "12345" }).success, false);
   assert.equal(credentialsSchema.safeParse({ email: "pessoa@exemplo.com", password: "123456" }).success, true);
+  assert.equal(credentialsSchema.safeParse({ email: "pessoa-@gmail.com", password: "123456" }).success, false);
+  assert.equal(credentialsSchema.safeParse({ email: "pessoa-@exemplo.com", password: "123456" }).success, false);
+  assert.equal(credentialsSchema.safeParse({ email: "pes-soa@gmail.com", password: "123456" }).success, true);
 });
 
 test("exige campos da coleta e status conhecido", () => {
