@@ -53,7 +53,10 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Mostrar eventos excedentes do mês em "Ver mais" no desktop.
 - [x] Alinhar "Ver mais" à célula do dia e mostrar descrições fora da área rolável.
 - [x] Mostrar editar e cancelar sobre o card apenas no hover ou foco.
+- [x] Agrupar editar e cancelar no canto do card sem sobreposição visual.
+- [x] Remover a listagem duplicada abaixo da visualização diária no desktop.
 - [x] Ancorar o seletor de data do formulário ao respectivo campo.
+- [x] Dar espaço ao título do mês e usar inicial maiúscula nos seletores de data.
 - [ ] Revisar responsividade para celular e desktop.
 
 ## Qualidade e entrega
