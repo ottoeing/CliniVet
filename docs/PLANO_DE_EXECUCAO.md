@@ -75,7 +75,6 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Preencher a seção "Uso de IA" apenas com evidências reais do desenvolvimento.
 - [x] Reescrever a seção "Uso de IA" em primeira pessoa com os prompts de planejamento, simplicidade e testes com mutantes.
 - [x] Preparar Docker Compose com SQLite persistente e inicialização em um comando.
-- [x] Preparar configuração de publicação no Render com disco persistente.
+- [x] Definir hospedagem local e retirar a configuração de nuvem do projeto.
 - [ ] Executar o Compose em um ambiente com Docker e conferir o site após reiniciar o contêiner.
 - [x] Conferir variáveis de ambiente e ausência de segredos no Git.
-- [ ] Publicar o projeto (opcional).

@@ -23,8 +23,7 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 - [x] Docker Compose preparado com inicialização do banco e site por `docker compose up --build`; volume nomeado preserva o SQLite. Os arquivos YAML foram analisados, mas Docker não está instalado neste ambiente para exercitar o contêiner.
 - [ ] Executar o Compose e conferir persistência após reinício em um ambiente com Docker.
 - [x] Busca por clínica e paginação na API e em painel próprio da agenda. O teste da API verificou filtros, metadados, ordem e isolamento; o navegador confirmou resultados e troca de página.
-- [ ] Publicação online (opcional no enunciado).
-- [x] `render.yaml` preparado para serviço Docker com disco persistente e segredo gerado pela plataforma; a criação de um serviço pago ainda depende da conta de hospedagem.
+- [ ] Publicação online (diferencial opcional do PDF, retirado do escopo por decisão posterior de hospedar somente na máquina local).
 - [x] README com execução local e via Compose, stack, decisões e seção `Uso de IA` em primeira pessoa com prompts reais, erros corrigidos e evolução.
 - [x] `.env` e banco local ignorados pelo Git; apenas `.env.example` está versionado. A senha de demonstração passou a vir de `DEMO_PASSWORD`.
 - [x] Histórico contém commits pequenos e coesos.

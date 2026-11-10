@@ -129,15 +129,11 @@ O teste de API usa contas temporárias e as remove ao final. Se o servidor estiv
 
 A [validação do teste prático](docs/VALIDACAO_DO_TESTE.md) registra as verificações em código, API e navegador, além dos diferenciais pendentes. O [plano de execução](docs/PLANO_DE_EXECUCAO.md) acompanha as atividades concluídas.
 
-## Publicação
-
-O arquivo `render.yaml` prepara um serviço Docker no Render com disco persistente para o SQLite e `SESSION_SECRET` gerado pela plataforma. Vincule o repositório em **New > Blueprint** no painel do Render e revise o plano antes de criar o serviço. O disco persistente exige um plano pago; a aplicação ainda não foi publicada. O serviço executa as migrações ao iniciar. A versão local via Compose não exige conta em um serviço de hospedagem.
-
 ## Decisões e limites atuais
 
 - A aplicação reúne interface e API no Next.js para reduzir a configuração local.
 - O SQLite atende à execução local do teste. Para uso com múltiplas instâncias, seria preciso escolher um banco compartilhado e proteger a regra de conflito contra gravações simultâneas.
-- A interface foi revisada no computador e no celular, e os fluxos de dados foram exercitados pela API. Há configuração para Compose e Render, mas ainda não há versão publicada nem iniciador `.exe` versionado neste repositório.
+- A aplicação foi preparada para rodar localmente com Node.js ou Docker Compose. A publicação em nuvem foi retirada do escopo; não há iniciador `.exe` versionado neste repositório.
 
 ## Uso de IA
 
