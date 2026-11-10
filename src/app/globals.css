@@ -139,4 +139,9 @@ html, .modal-layer .form-panel { scrollbar-color: #70aa9c transparent; scrollbar
 .calendar-day .calendar-cell { min-height: 160px; }
 .modal-layer .form-panel { max-height: min(88vh, 720px); overflow-x: hidden; overscroll-behavior: contain; }
 .modal-layer .form-panel form { margin-bottom: 0; }
+.modal-layer .form-actions { justify-content: flex-end; gap: 10px; margin-top: 18px; }
+.modal-layer .form-actions .primary-button, .modal-layer .form-actions .secondary-button { min-height: 44px; margin: 0; padding: 0 18px; border-radius: 10px; font-size: .9rem; white-space: nowrap; }
+.modal-layer .form-actions .secondary-button { border: 1px solid var(--border); background: #edf5ef; box-shadow: none; }
+.modal-layer .form-actions .secondary-button:hover { background: #dcebe0; }
+@media (max-width: 420px) { .modal-layer .form-actions { display: grid; grid-template-columns: 1fr 1fr; }.modal-layer .form-actions button { width: 100%; padding: 0 8px; } }
 @media (max-width: 760px) { .calendar-header { grid-template-columns: 1fr; }.period-navigation, .calendar-actions { grid-column: 1; justify-self: center; }.filter-popover .filters { grid-template-columns: 1fr; } }

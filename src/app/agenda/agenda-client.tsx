@@ -217,8 +217,8 @@ export function AgendaClient({ email }: { email: string }) {
           <textarea id="notes" value={draft.notes ?? ""} onChange={(e) => updateDraft("notes", e.target.value)} rows={3} />
           {formError && <p className="form-error" role="alert">{formError}</p>}
           <div className="form-actions">
+            <button className="secondary-button" onClick={resetForm} type="button">Cancelar</button>
             <button className="primary-button" disabled={pending} type="submit">{pending ? "Salvando..." : editingId ? "Salvar alterações" : "Agendar coleta"}</button>
-            <button className="text-button" onClick={resetForm} type="button">Cancelar</button>
           </div>
         </form>
         </section>
