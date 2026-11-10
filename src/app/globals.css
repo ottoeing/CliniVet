@@ -196,3 +196,10 @@ html, body { overflow-x: clip; }
 .appointment-calendar-layer .appointment-date-menu { position: relative; top: auto; left: auto; z-index: 1; width: max-content; max-width: calc(100vw - 24px); padding: 16px; overflow: visible; }
 .appointment-calendar-layer .rdp { margin: 0; color: var(--foreground); --rdp-accent-color: var(--primary); }
 .appointment-datetime input { text-align: center; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.agenda-layout { gap: 0; }
+.agenda-page:has(.calendar-month) .agenda-layout { gap: 0; }
+.calendar-board.calendar-day, .calendar-board.calendar-week { min-height: 0; }
+.calendar-day .calendar-cell { min-height: 120px; }
+.calendar-week .calendar-cell { min-height: 280px; }
+.calendar-week { min-height: 0; }
+.calendar-day, .calendar-week { margin-bottom: 0; }
