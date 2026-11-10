@@ -216,6 +216,8 @@ html, body { overflow-x: clip; }
 .calendar-event-wrap .event-animal { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .event-action-group { position: absolute; top: 50%; right: 4px; display: flex; align-items: center; gap: 2px; padding: 0; border-radius: 4px; background: #f9faf7; opacity: 0; pointer-events: none; transform: translateY(-50%); transition: opacity .2s ease; }
 .calendar-event-wrap:hover .event-action-group, .calendar-event-wrap:focus-within .event-action-group { opacity: 1; pointer-events: auto; }
+.fab { z-index: 95; }
+.fab:hover { transform: scale(1.06) rotate(6deg); }
 .event-action { display: grid; place-items: center; width: 20px; height: 20px; padding: 0; border: 0; border-radius: 4px; color: var(--primary); background: transparent; cursor: pointer; transition: background-color .2s ease, transform .2s ease; }
 .event-action:hover { background: #dcebe0; transform: translateY(-1px); }
 .event-action-danger { color: var(--danger); }
