@@ -8,6 +8,7 @@ Agenda de coletas veterinárias com cadastro, autenticação e calendário. Cada
 - Calendário em **dia, semana e mês** no computador. No celular, a visualização mensal permite selecionar um dia e percorrer suas coletas.
 - Criação, edição e cancelamento de coletas. O cancelamento altera o status e preserva o registro.
 - Filtro por data e seleção de múltiplos status; resultados ordenados por data e hora.
+- Busca por clínica em uma lista paginada de dez coletas, sem limitar os eventos exibidos no calendário.
 - Isolamento por conta: as consultas e alterações na API usam o usuário da sessão.
 - Vinte coletas de exemplo por conta nova, incluindo um dia movimentado para demonstrar o recurso **“Ver mais”**. Os exemplos não são duplicados ao entrar novamente.
 - Validação no servidor de campos obrigatórios, data futura e conflito entre coletas **Agendado** da mesma conta no mesmo horário.
@@ -24,11 +25,21 @@ Agenda de coletas veterinárias com cadastro, autenticação e calendário. Cada
 
 O SQLite usa um arquivo local. Não é necessário iniciar um servidor de banco de dados separado.
 
+### Com Docker Compose
+
+Com Docker Compose instalado, crie o `.env` a partir de `.env.example`, substitua `SESSION_SECRET` por uma chave aleatória e execute:
+
+```sh
+docker compose up --build
+```
+
+Acesse [http://localhost:3000](http://localhost:3000). O contêiner prepara o SQLite, aplica as migrações e inicia o site. O volume `clinivet_data` preserva os dados entre reinícios. `docker compose down` encerra o serviço sem apagar o volume.
+
 ## Executar localmente
 
 ### Pré-requisitos
 
-- Node.js 20 ou superior e npm.
+- Node.js 22.9 ou superior e npm.
 - Uma porta livre para o servidor local (a padrão é `3000`).
 
 No PowerShell, dentro da pasta do projeto:
@@ -69,7 +80,7 @@ Isso cria ou atualiza `admin@clinivet.local` com a senha definida. Ao entrar, es
 1. Crie uma conta ou entre com uma existente.
 2. Navegue pelo período no cabeçalho. No computador, escolha dia, semana ou mês; no celular, toque em um dia do mês para ver sua lista.
 3. Use o botão flutuante **+** para agendar uma coleta, informando clínica, animal, exame, data, hora e status. Observações são opcionais.
-4. Use os filtros de data e status para localizar registros. No calendário do computador, **Ver mais** abre os eventos que não cabem na célula.
+4. Use os filtros de data e status ou a lupa para buscar por clínica e percorrer os resultados. No calendário do computador, **Ver mais** abre os eventos que não cabem na célula.
 5. Passe o mouse sobre um evento para ver detalhes e os controles de edição e cancelamento. No celular, os controles ficam na lista do dia.
 
 ## Estrutura do projeto
@@ -91,11 +102,12 @@ docs/                           Plano de execução e validação do teste
 | `POST /api/auth/register` | Criar conta e iniciar sessão |
 | `POST /api/auth/login` | Entrar |
 | `POST /api/auth/logout` | Sair |
-| `GET /api/appointments` | Listar coletas da conta; aceita `date=AAAA-MM-DD` e um ou mais parâmetros `status` |
+| `GET /api/appointments` | Listar coletas da conta; aceita `date=AAAA-MM-DD`, `clinic`, um ou mais `status`, além de `page` e `pageSize` (máximo 50) para paginação |
 | `POST /api/appointments` | Criar coleta |
 | `PATCH /api/appointments/:id` | Editar ou cancelar uma coleta, alterando seu status |
 
 As rotas de coletas exigem sessão. O modelo está em `prisma/schema.prisma`; as regras de data, conflito e exemplos ficam em `src/lib/appointments.ts`.
+Sem `page` ou `pageSize`, a rota retorna todas as coletas filtradas para compor o calendário. Com paginação, também retorna `total`, `page`, `pageSize` e `totalPages`.
 
 ## Verificação
 
@@ -117,26 +129,28 @@ O teste de API usa contas temporárias e as remove ao final. Se o servidor estiv
 
 A [validação do teste prático](docs/VALIDACAO_DO_TESTE.md) registra as verificações em código, API e navegador, além dos diferenciais pendentes. O [plano de execução](docs/PLANO_DE_EXECUCAO.md) acompanha as atividades concluídas.
 
+## Publicação
+
+O arquivo `render.yaml` prepara um serviço Docker no Render com disco persistente para o SQLite e `SESSION_SECRET` gerado pela plataforma. Vincule o repositório em **New > Blueprint** no painel do Render e revise o plano antes de criar o serviço. O disco persistente exige um plano pago; a aplicação ainda não foi publicada. O serviço executa as migrações ao iniciar. A versão local via Compose não exige conta em um serviço de hospedagem.
+
 ## Decisões e limites atuais
 
 - A aplicação reúne interface e API no Next.js para reduzir a configuração local.
 - O SQLite atende à execução local do teste. Para uso com múltiplas instâncias, seria preciso escolher um banco compartilhado e proteger a regra de conflito contra gravações simultâneas.
-- A interface foi revisada no computador e no celular, e os fluxos de dados foram exercitados pela API. Não há versão publicada nem iniciador `.exe` versionado neste repositório.
+- A interface foi revisada no computador e no celular, e os fluxos de dados foram exercitados pela API. Há configuração para Compose e Render, mas ainda não há versão publicada nem iniciador `.exe` versionado neste repositório.
 
 ## Uso de IA
 
-**Ferramenta.** Codex auxiliou na implementação, revisão do código, análise das imagens de erro e criação dos testes. As alterações foram conferidas com lint, TypeScript, testes locais e builds durante o desenvolvimento.
+**Ferramentas.** Usei o ChatGPT para gerar os dois arquivos Markdown de planejamento no início do projeto. Na implementação e nas revisões, usei o Codex com os modelos 5.6 e 6 sol, alternando conforme a complexidade do pedido. Conferi as alterações manualmente e executei lint, verificação de TypeScript, testes e build.
 
-**Prompts relevantes do usuário.**
+**Prompts que usei.**
 
-1. “Login e Senha precisam ter suas validações ... ao errar email e senha NÃO deve indicar que o email ou a senha está errado”.
-2. “o calendário ta dividido em grids para cada dia (e nao cards) e os cards são as tarefas dentro dos grids”.
-3. “ao preencher a hora digitando manualmente pelo celular não tá formatando e consegui fazer dar um ‘invalid date’”.
-4. “tá faltando o botão de ver mais no dia 12, ocultou uma tarefa”.
-5. “o botão de ver mais só deve aparecer quando o grid nao comportar mais tarefas”.
+1. “Podemos implementar dinâmicas de KISS, YAGNI e DRY.” Usei esse pedido para manter a solução simples, evitar funções fora do escopo e reaproveitar código quando isso fazia sentido.
+2. “Gere um prompt para iniciarmos isso. [...] quero que você faça dois arquivos de .md, um arquivo com instruções a serem seguidas e o outro de um passo a passo a ser executado.” Depois pedi checkboxes (`[ ]` e `[x]`) no passo a passo para acompanhar as tarefas.
+3. “Quero que você faça testes com mutantes no código e crie testes para as requisições que não possuem, por último, faça testes você mesmo.” Dei prioridade a esse prompt para verificar se os testes detectavam alterações indevidas nas regras e para exercitar os fluxos da API.
 
-**Erros encontrados na implementação assistida por IA.** A entrada manual de horário produzia uma data inválida; a entrada passou a ser formatada e validada antes do envio. O primeiro limite de eventos do mês ocultava uma coleta sem acesso; uma revisão posterior mostrava “Ver mais” cedo demais. A quantidade visível passou a considerar a altura da célula.
+**Erros encontrados na implementação assistida por IA.** Encontrei principalmente problemas visuais e de interação que atrapalhavam o uso do aplicativo. Por exemplo, o calendário inicialmente foi feito com blocos para os dias, apesar de eu pedir uma grade contínua; refinei o prompt e revisei o resultado na tela. Também encontrei uma data inválida ao digitar o horário no celular e um limite de eventos que ocultava coletas ou mostrava “Ver mais” cedo demais. Solicitei as correções e verifiquei cada uma manualmente. Erros de biblioteca e de código foram corrigidos com facilidade pela IA, e conferi o comportamento logo depois.
 
-**Decisões do usuário.** A escolha de Next.js full stack, SQLite local, `lucide-react`, grade contínua do calendário e commits pequenos veio das revisões do usuário. Para manter o escopo simples, as regras de agendamento ficaram em `src/lib/appointments.ts` e o formulário de criar e editar é compartilhado.
+**Decisões que tomei.** Escolhi Next.js full stack para manter o front-end e as rotas de API organizados no mesmo projeto. Nas revisões, defini o uso de SQLite local, `lucide-react`, uma grade contínua para o calendário e commits pequenos. Para seguir KISS, YAGNI e DRY, mantive as regras de agendamento em `src/lib/appointments.ts` e compartilhei o formulário de criação e edição.
 
-**Evolução.** Para múltiplas instâncias, eu migraria para um banco compartilhado e protegeria o conflito de horário em uma operação transacional. Ampliaria os testes de interface e a cobertura de mutação para fluxos de autenticação e persistência. Separaria configuração e implantação por ambiente, com gestão de segredos fora do repositório.
+**Evolução.** Pretendo incluir responsáveis por cada coleta no card, histórico de alterações e anexos de imagens e áudios. Também quero otimizar o calendário e continuar as melhorias visuais. Se o projeto crescer para múltiplas instâncias, migraria o banco local para um banco compartilhado e reforçaria a proteção contra conflitos simultâneos de horário.

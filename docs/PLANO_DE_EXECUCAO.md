@@ -34,6 +34,7 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 
 - [x] Construir a listagem ordenada pela data/hora da coleta.
 - [x] Adicionar filtros por status e data.
+- [x] Adicionar busca por clínica e paginação da lista de resultados sem limitar o calendário.
 - [x] Permitir selecionar vários status no mesmo filtro.
 - [x] Criar formulário reutilizável para criar e editar.
 - [x] Implementar cancelamento sem excluir o registro.
@@ -72,5 +73,9 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Detectar mutantes nas regras de e-mail, senha, campos, data e status.
 - [x] Escrever README de execução, decisões e credenciais de demonstração.
 - [x] Preencher a seção "Uso de IA" apenas com evidências reais do desenvolvimento.
+- [x] Reescrever a seção "Uso de IA" em primeira pessoa com os prompts de planejamento, simplicidade e testes com mutantes.
+- [x] Preparar Docker Compose com SQLite persistente e inicialização em um comando.
+- [x] Preparar configuração de publicação no Render com disco persistente.
+- [ ] Executar o Compose em um ambiente com Docker e conferir o site após reiniciar o contêiner.
 - [x] Conferir variáveis de ambiente e ausência de segredos no Git.
 - [ ] Publicar o projeto (opcional).

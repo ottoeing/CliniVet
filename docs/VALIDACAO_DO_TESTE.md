@@ -20,10 +20,12 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 - [x] Testes automatizados de validação em `tests/validation.test.ts`: 4 passaram, incluindo hífen antes do `@` e preenchimento de data/hora em ambas as ordens.
 - [x] Teste de integração das rotas, incluindo erros de cadastro, login genérico, autorização, filtros, conflito na criação e edição, cancelamento e logout, em `tests/api-smoke.mjs`.
 - [x] Teste de mutação direcionado em `tests/mutation.mjs`: 9 de 9 mutantes detectados por falhas de asserção. Escopo: regras de e-mail, senha, campos obrigatórios, data, hora e status.
-- [ ] Docker ou Compose para iniciar com um comando (opcional no enunciado).
-- [ ] Busca por clínica e paginação (opcional no enunciado).
+- [x] Docker Compose preparado com inicialização do banco e site por `docker compose up --build`; volume nomeado preserva o SQLite. Os arquivos YAML foram analisados, mas Docker não está instalado neste ambiente para exercitar o contêiner.
+- [ ] Executar o Compose e conferir persistência após reinício em um ambiente com Docker.
+- [x] Busca por clínica e paginação na API e em painel próprio da agenda. O teste da API verificou filtros, metadados, ordem e isolamento; o navegador confirmou resultados e troca de página.
 - [ ] Publicação online (opcional no enunciado).
-- [x] README com execução em cinco comandos, stack, decisões e seção `Uso de IA` com ferramenta, cinco prompts reais, dois erros corrigidos, decisões do usuário e evolução.
+- [x] `render.yaml` preparado para serviço Docker com disco persistente e segredo gerado pela plataforma; a criação de um serviço pago ainda depende da conta de hospedagem.
+- [x] README com execução local e via Compose, stack, decisões e seção `Uso de IA` em primeira pessoa com prompts reais, erros corrigidos e evolução.
 - [x] `.env` e banco local ignorados pelo Git; apenas `.env.example` está versionado. A senha de demonstração passou a vir de `DEMO_PASSWORD`.
 - [x] Histórico contém commits pequenos e coesos.
 - [x] `npm run build` passou após empacotar as fontes localmente e executar a build fora do isolamento do Windows.
@@ -40,7 +42,9 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 - `npm run test:unit` — 4 testes passaram.
 - `npm run test:mutation` — 9 de 9 mutantes detectados.
 - `npm run db:setup` — passou em banco novo e no banco existente, sem duplicar migrações.
-- `npm run test:api` — passou contra a aplicação compilada; as contas de teste foram removidas.
+- `npm run test:api` — passou nesta revisão contra o servidor local, incluindo busca e paginação; as contas de teste foram removidas.
 - `npm run build` — passou fora do isolamento do Windows, com fontes locais.
 - `npm audit --omit=dev --audit-level=high` — encontrou os 3 alertas descritos acima.
 - Instalação limpa — dependências instaladas, migração aplicada e página de login carregada; arquivos temporários removidos.
+- Busca e paginação — verificadas em navegador com uma conta temporária de 20 exemplos; a conta foi removida ao final.
+- `compose.yaml` e `render.yaml` — sintaxe analisada com o módulo YAML local; execução Docker pendente porque o comando não está instalado neste Windows.
