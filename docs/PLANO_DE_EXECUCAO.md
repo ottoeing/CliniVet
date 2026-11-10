@@ -27,11 +27,11 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 
 ## Interface da agenda
 
-- [ ] Construir a listagem ordenada pela data/hora da coleta.
-- [ ] Adicionar filtros por status e data.
-- [ ] Criar formulário reutilizável para criar e editar.
-- [ ] Implementar cancelamento sem excluir o registro.
-- [ ] Exibir estados de carregamento, erro e lista vazia.
+- [x] Construir a listagem ordenada pela data/hora da coleta.
+- [x] Adicionar filtros por status e data.
+- [x] Criar formulário reutilizável para criar e editar.
+- [x] Implementar cancelamento sem excluir o registro.
+- [x] Exibir estados de carregamento, erro e lista vazia.
 - [ ] Revisar responsividade para celular e desktop.
 
 ## Qualidade e entrega
