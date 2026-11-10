@@ -50,6 +50,11 @@ function toDisplayDate(isoDate: string) {
   );
 }
 
+function formatTimeInput(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 4);
+  return digits.length > 2 ? `${digits.slice(0, 2)}:${digits.slice(2)}` : digits;
+}
+
 export function AgendaClient({ email }: { email: string }) {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
@@ -150,6 +155,11 @@ export function AgendaClient({ email }: { email: string }) {
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const date = new Date(draft.scheduledAt);
+    if (!/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d$/.test(draft.scheduledAt) || Number.isNaN(date.getTime())) {
+      setFormError("Selecione uma data e informe um horário válido em HH:MM.");
+      return;
+    }
     setPending(true);
     setFormError("");
     const response = await fetch(editingId ? `/api/appointments/${editingId}` : "/api/appointments", {
@@ -219,7 +229,7 @@ export function AgendaClient({ email }: { email: string }) {
           <input id="examType" value={draft.examType} onChange={(e) => updateDraft("examType", e.target.value)} required />
           <label htmlFor="scheduledAtDate">Data e hora da coleta <span className="required">*</span></label>
           <div className="appointment-datetime"><button id="scheduledAtDate" className="date-trigger" aria-expanded={showFormCalendar} onClick={() => setShowFormCalendar((open) => !open)} type="button">{draft.scheduledAt && draft.scheduledAt.slice(0, 10) ? new Date(`${draft.scheduledAt.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR") : "Selecionar data"}<CalendarDays size={18} /></button>
-          <input aria-label="Horário da coleta no formato HH:MM" type="text" inputMode="numeric" placeholder="HH:MM" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" maxLength={5} title="Informe o horário no formato HH:MM" value={draft.scheduledAt.slice(11)} onChange={(e) => updateDraft("scheduledAt", `${draft.scheduledAt.slice(0, 10)}T${e.target.value}`)} required /></div>
+          <input aria-label="Horário da coleta no formato HH:MM" type="text" inputMode="numeric" placeholder="HH:MM" pattern="(?:[01][0-9]|2[0-3]):[0-5][0-9]" maxLength={5} title="Informe o horário no formato HH:MM" value={draft.scheduledAt.slice(11)} onChange={(e) => updateDraft("scheduledAt", `${draft.scheduledAt.slice(0, 10)}T${formatTimeInput(e.target.value)}`)} required /></div>
           <label htmlFor="status">Status <span className="required">*</span></label>
           <select id="status" value={draft.status} onChange={(e) => updateDraft("status", e.target.value)}>
             {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
@@ -255,7 +265,7 @@ export function AgendaClient({ email }: { email: string }) {
           {visibleDays.map((date) => {
             const entries = appointments.filter((item) => new Date(item.scheduledAt).toDateString() === date.toDateString());
             const dateKey = date.toDateString();
-            return <div className={`calendar-cell${view === "month" && date.getMonth() !== calendarDate.getMonth() ? " outside-month" : ""}${dateKey === selectedMobileDate.toDateString() ? " selected-day" : ""}`} key={date.toISOString()}><button className="calendar-day-number" aria-label={`Ver coletas de ${date.toLocaleDateString("pt-BR")}`} onClick={() => setSelectedMobileDate(date)} type="button">{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}{view === "month" && entries.length > 0 && <span className="day-event-dot" />}</button>{(view === "month" ? entries.slice(0, 3) : entries).map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => startEdit(item)} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal}</button>)}{view === "month" && entries.length > 3 && <><button className="more-events" aria-expanded={expandedDate === dateKey} onClick={() => setExpandedDate(expandedDate === dateKey ? null : dateKey)} type="button">Ver mais ({entries.length - 3})</button>{expandedDate === dateKey && <div className="more-events-popover"><div className="more-events-heading">{date.toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}<button aria-label="Fechar lista" onClick={() => setExpandedDate(null)} type="button">×</button></div><div className="more-events-list">{entries.map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => { setExpandedDate(null); startEdit(item); }} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal} · {item.examType}</button>)}</div></div>}</>}</div>;
+            return <div className={`calendar-cell${view === "month" && date.getMonth() !== calendarDate.getMonth() ? " outside-month" : ""}${dateKey === selectedMobileDate.toDateString() ? " selected-day" : ""}`} key={date.toISOString()}><button className="calendar-day-number" aria-label={`Ver coletas de ${date.toLocaleDateString("pt-BR")}`} onClick={() => setSelectedMobileDate(date)} type="button">{view === "day" || view === "week" ? date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric" }) : date.getDate()}{view === "month" && entries.length > 0 && <span className="day-event-dot" />}</button>{(view === "month" ? entries.slice(0, 3) : entries).map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => startEdit(item)} type="button"><span className="event-time">{toDisplayDate(item.scheduledAt).slice(-5)}</span><span className="event-animal">{item.animal}</span></button>)}{view === "month" && entries.length > 3 && <><button className="more-events" aria-expanded={expandedDate === dateKey} onClick={() => setExpandedDate(expandedDate === dateKey ? null : dateKey)} type="button">Ver mais ({entries.length - 3})</button>{expandedDate === dateKey && <div className="more-events-popover"><div className="more-events-heading">{date.toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}<button aria-label="Fechar lista" onClick={() => setExpandedDate(null)} type="button">×</button></div><div className="more-events-list">{entries.map((item) => <button className={`calendar-event event-${item.status.toLowerCase()}`} key={item.id} onClick={() => { setExpandedDate(null); startEdit(item); }} type="button">{toDisplayDate(item.scheduledAt).slice(-5)} · {item.animal} · {item.examType}</button>)}</div></div>}</>}</div>;
           })}
         </motion.div>{(view === "day" || view === "month") && <SimpleBar className={`appointments-scroll ${view === "month" ? "mobile-month-events" : ""}`}><div className="mobile-events-title">{(view === "month" ? selectedMobileDate : calendarDate).toLocaleDateString("pt-BR", { day: "numeric", month: "long" })}</div><ul className="appointment-list">
           {appointments.filter((appointment) => new Date(appointment.scheduledAt).toDateString() === (view === "month" ? selectedMobileDate : calendarDate).toDateString()).map((appointment) => <li key={appointment.id} className="appointment-item">

@@ -235,4 +235,25 @@ html, body { overflow-x: clip; }
   .mobile-month-events { display: block; max-height: 36dvh; overflow: auto; }
   .mobile-events-title { display: block; padding: 0 0 10px; font-weight: 700; text-transform: capitalize; }
   .appointments-scroll { margin: 12px; }
+  .agenda-page:has(.calendar-month) { height: 100dvh; min-height: 0; overflow: hidden; }
+  .agenda-page:has(.calendar-month) .agenda-layout { height: 100%; }
+  .agenda-page:has(.calendar-month) .list-panel { min-height: 0; overflow: hidden; }
+  .agenda-page:has(.calendar-month) .calendar-board { flex: 0 0 auto; }
+  .mobile-month-events { flex: 1 1 auto; min-height: 0; max-height: none; margin: 8px 12px 0; }
+  .mobile-month-events .appointment-list { gap: 7px; }
+  .mobile-month-events .appointment-item { padding: 9px 11px; gap: 7px; border-radius: 10px; }
+  .mobile-month-events .appointment-main { gap: 1px; }
+  .mobile-month-events .appointment-main strong { font-size: .94rem; }
+  .mobile-month-events .appointment-main span, .mobile-month-events .appointment-main small { font-size: .76rem; }
+  .mobile-month-events .appointment-actions { gap: 5px; }
+  .mobile-month-events .icon-button { width: 30px; height: 30px; }
+  .agenda-page:has(.calendar-week) { height: 100dvh; min-height: 0; overflow: hidden; }
+  .agenda-page:has(.calendar-week) .agenda-layout { height: 100%; display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+  .agenda-page:has(.calendar-week) .list-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .agenda-page:has(.calendar-week) .calendar-board { flex: 1; min-height: 0; margin-bottom: 0; grid-template-rows: 30px minmax(0, 1fr); }
+  .calendar-week .calendar-cell { min-height: 0; overflow-y: auto; }
+  .calendar-week .calendar-day-number { display: none; }
+  .calendar-week .calendar-event { display: grid; gap: 2px; min-height: 44px; text-align: left; overflow: hidden; }
+  .calendar-week .event-time, .calendar-week .event-animal { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .calendar-week .event-time { font-weight: 700; }
 }
