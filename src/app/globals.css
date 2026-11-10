@@ -186,7 +186,8 @@ html, body { overflow-x: clip; }
 .calendar-month { height: calc(100dvh - 150px); margin-bottom: 0; }
 @media (max-width: 760px) { .calendar-month { height: auto; }.appointment-datetime { grid-template-columns: 1fr 110px; } }
 .agenda-page:has(.calendar-month) { height: 100dvh; min-height: 0; overflow: hidden; }
-.agenda-page:has(.calendar-month) .agenda-layout { height: 100%; display: flex; flex-direction: column; }
+.agenda-page:has(.calendar-month) .agenda-layout { height: 100%; display: flex; flex-direction: column; align-items: stretch; }
+.agenda-topbar { width: 100%; }
 .agenda-page:has(.calendar-month) .list-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .agenda-page:has(.calendar-month) .calendar-board { flex: 1; height: auto; min-height: 0; margin-bottom: 0; }
 @media (max-width: 760px) { .agenda-page:has(.calendar-month) { height: auto; min-height: 100dvh; overflow: visible; }.agenda-page:has(.calendar-month) .calendar-board { min-height: 620px; } }
