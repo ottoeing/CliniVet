@@ -26,6 +26,7 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 - [x] `.env` e banco local ignorados pelo Git; apenas `.env.example` está versionado. A senha de demonstração passou a vir de `DEMO_PASSWORD`.
 - [x] Histórico contém commits pequenos e coesos.
 - [x] `npm run build` passou após empacotar as fontes localmente e executar a build fora do isolamento do Windows.
+- [ ] Avaliar atualização da cadeia do Prisma: `npm audit --omit=dev --audit-level=high` relatou 3 alertas altos em `deepmerge-ts@7.1.5`, dependência de `@prisma/config` via `@prisma/client@6.19.3`. O reparo automático propõe Prisma 7, uma atualização com quebra de compatibilidade; não foi aplicado nesta validação.
 - [x] Conferir uma cópia limpa do código versionado seguindo o README: `npm ci`, `.env`, `npm run db:generate`, `npm run db:setup` e `npm run dev`; a página `/login` respondeu HTTP 200. O `db:setup` prepara o arquivo SQLite antes da migração, necessário neste Windows.
 - [x] Commits recentes enviados para `https://github.com/ottoeing/CliniVet`.
 - [ ] Gerar o iniciador `.exe` pedido anteriormente; a publicação .NET depende do NuGet, inacessível nesta sessão. O script e o código do iniciador ainda estão locais.
@@ -40,4 +41,5 @@ Referência: `Teste Prático — Desenvolvedor(a) Full Stack.pdf`, fornecido pel
 - `npm run db:setup` — passou em banco novo e no banco existente, sem duplicar migrações.
 - `npm run test:api` — passou contra a aplicação compilada; as contas de teste foram removidas.
 - `npm run build` — passou fora do isolamento do Windows, com fontes locais.
+- `npm audit --omit=dev --audit-level=high` — encontrou os 3 alertas descritos acima.
 - Instalação limpa — dependências instaladas, migração aplicada e página de login carregada; arquivos temporários removidos.
