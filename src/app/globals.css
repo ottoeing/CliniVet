@@ -230,15 +230,16 @@ html, body { overflow-x: clip; }
 .search-form { display: grid; gap: 7px; margin: 18px 0 8px; }
 .search-form label { font-weight: 700; }
 .search-controls input { flex: 1; min-width: 0; margin: 0; }
-.search-controls .primary-button { min-height: 44px; padding: 0 16px; }
+.search-controls .primary-button { flex: none; height: 44px; min-height: 44px; margin-top: 0; padding: 0 16px; }
 .search-count { margin: 6px 0 10px; color: var(--muted); font-size: .88rem; }
-.search-results { min-height: 0; overflow-y: auto; padding-right: 4px; scrollbar-color: #70aa9c transparent; scrollbar-width: thin; }
+.search-results { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding-right: 4px; scrollbar-color: #70aa9c transparent; scrollbar-width: thin; }
 .search-results .appointment-item { align-items: center; }
 .search-results .appointment-actions { align-items: center; }
 .search-pagination { justify-content: space-between; margin-top: 12px; }
 .search-pagination .secondary-button { min-height: 36px; padding: 0 12px; border-radius: 9px; }
 .search-pagination span { color: var(--muted); font-size: .85rem; white-space: nowrap; }
-@media (max-width: 480px) { .search-panel { padding: 16px; max-height: calc(100dvh - 24px); }.search-results .appointment-item { align-items: stretch; }.search-results .appointment-actions { justify-content: flex-end; }.search-pagination { gap: 4px; }.search-pagination .secondary-button { padding: 0 8px; } }
+@media (max-width: 760px) { .calendar-header .calendar-search-trigger { display: none; }.search-panel { width: min(100%, 480px); max-height: calc(100dvh - 24px); padding: 18px; }.search-form { margin-top: 12px; }.search-results .appointment-item { padding: 11px; gap: 8px; }.search-results .appointment-actions { justify-content: flex-end; } }
+@media (max-width: 480px) { .modal-layer:has(.search-panel) { padding: 10px; }.search-panel { max-height: calc(100dvh - 20px); padding: 15px; border-radius: 16px; }.search-heading .panel-title h2 { font-size: 1.1rem; }.search-controls { gap: 8px; }.search-controls .primary-button { padding: 0 12px; }.search-results .appointment-item { align-items: stretch; }.search-pagination { gap: 4px; }.search-pagination .secondary-button { padding: 0 8px; } }
 @media (max-width: 760px) { .event-tooltip { display: none !important; } }
 .filter-menu .rdp-root, .appointment-date-menu .rdp-root { --rdp-accent-color: var(--primary); --rdp-accent-background-color: #dcebe0; --rdp-today-color: var(--primary); }
 .filter-menu .rdp-month_caption, .appointment-date-menu .rdp-month_caption { padding-inline: 12px; }

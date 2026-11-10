@@ -35,6 +35,7 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Construir a listagem ordenada pela data/hora da coleta.
 - [x] Adicionar filtros por status e data.
 - [x] Adicionar busca por clínica e paginação da lista de resultados sem limitar o calendário.
+- [x] Alinhar o botão de busca ao campo e manter um único acesso à busca junto dos filtros no celular.
 - [x] Permitir selecionar vários status no mesmo filtro.
 - [x] Criar formulário reutilizável para criar e editar.
 - [x] Implementar cancelamento sem excluir o registro.
