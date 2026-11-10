@@ -45,6 +45,7 @@ Marque uma atividade concluída substituindo `[ ]` por `[x]`. Cada grupo conclu�
 - [x] Centralizar a navegação de datas e compactar visões e filtros em ícones.
 - [x] Manter o cabeçalho visível durante a rolagem.
 - [x] Adaptar o mês para celular com seleção de dia e lista rolável de eventos.
+- [x] Mostrar somente o mês no celular, com filtros no cabeçalho compacto.
 - [x] Mostrar eventos excedentes do mês em "Ver mais" no desktop.
 - [ ] Revisar responsividade para celular e desktop.
 

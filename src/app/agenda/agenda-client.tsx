@@ -69,6 +69,12 @@ export function AgendaClient({ email }: { email: string }) {
   const [showFormCalendar, setShowFormCalendar] = useState(false);
   const [openFilter, setOpenFilter] = useState<"date" | "status" | null>(null);
   const [view, setView] = useState<"day" | "week" | "month">("month");
+  useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 760px)");
+    const useMonthOnMobile = () => { if (mobile.matches) setView("month"); };
+    mobile.addEventListener("change", useMonthOnMobile);
+    return () => mobile.removeEventListener("change", useMonthOnMobile);
+  }, []);
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [selectedMobileDate, setSelectedMobileDate] = useState(new Date());
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
@@ -210,7 +216,10 @@ export function AgendaClient({ email }: { email: string }) {
     <div className="agenda-layout">
       <header className="agenda-topbar">
         <div className="brand"><CalendarDays aria-hidden size={25} /><div><p className="eyebrow">CliniVet</p><h1>Agenda de coletas</h1></div></div>
-        <nav className="mobile-view-switch view-switch" aria-label="Visualização do calendário">{(["day", "week", "month"] as const).map((item) => { const Icon = { day: List, week: Columns3, month: Grid3X3 }[item]; return <button key={item} aria-label={`Visualização de ${{ day: "dia", week: "semana", month: "mês" }[item]}`} aria-pressed={view === item} className={view === item ? "active" : ""} onClick={() => setView(item)} type="button"><Icon size={18} /></button>; })}</nav>
+        <div className="mobile-header-filters">
+          <div className="filter-anchor"><button className={`icon-button${dateFilter ? " filter-active" : ""}`} aria-label="Filtrar por data" aria-expanded={openFilter === "date"} onClick={() => setOpenFilter(openFilter === "date" ? null : "date")} type="button"><CalendarDays size={18} /></button>{openFilter === "date" && <div className="filter-menu date-filter-menu"><DayPicker locale={ptBR} mode="single" selected={selectedFilterDate} onSelect={(date) => { setDateFilter(date ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}` : ""); setOpenFilter(null); }} /><button className="filter-option" onClick={() => { setDateFilter(""); setOpenFilter(null); }} type="button">Todas as datas</button></div>}</div>
+          <div className="filter-anchor"><button className={`icon-button${statusFilter ? " filter-active" : ""}`} aria-label="Filtrar por status" aria-expanded={openFilter === "status"} onClick={() => setOpenFilter(openFilter === "status" ? null : "status")} type="button"><SlidersHorizontal size={18} /></button>{openFilter === "status" && <div className="filter-menu status-filter-menu">{[{ value: "", label: "Todos" }, ...Object.entries(statusLabels).map(([value, label]) => ({ value, label }))].map((option) => <button key={option.value} className={`filter-option${statusFilter === option.value ? " selected" : ""}`} onClick={() => { setStatusFilter(option.value); setOpenFilter(null); }} type="button">{option.label}</button>)}</div>}</div>
+        </div>
         <div className="session-info"><span>{email}</span><LogoutButton icon={<LogOut aria-hidden size={18} />} iconOnly /></div>
       </header>
       {showForm && <div className="modal-layer">
