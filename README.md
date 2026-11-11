@@ -60,7 +60,11 @@ Copy-Item .env.example .env
 Edite `.env` e substitua `SESSION_SECRET` por uma chave aleatória. Você pode gerar uma chave no PowerShell com:
 
 ```powershell
-[Convert]::ToHexString([System.Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+$secretBytes = New-Object byte[] 32
+$secretRng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
+$secretRng.GetBytes($secretBytes)
+$secretRng.Dispose()
+[BitConverter]::ToString($secretBytes).Replace('-', '')
 ```
 
 Em seguida, prepare o banco e inicie a aplicação:
