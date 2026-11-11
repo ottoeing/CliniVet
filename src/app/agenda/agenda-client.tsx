@@ -64,6 +64,7 @@ export function AgendaClient({ email }: { email: string }) {
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [showForm, setShowForm] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [resumeSearchAfterForm, setResumeSearchAfterForm] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [searchPage, setSearchPage] = useState(1);
@@ -254,6 +255,11 @@ export function AgendaClient({ email }: { email: string }) {
   }
 
   function resetForm() {
+    if (resumeSearchAfterForm) {
+      setSearchLoading(true);
+      setShowSearch(true);
+    }
+    setResumeSearchAfterForm(false);
     setEditingId(null);
     setDraft(emptyDraft);
     setFormError("");
@@ -287,9 +293,10 @@ export function AgendaClient({ email }: { email: string }) {
     await loadAppointments();
   }
 
-  function startEdit(appointment: Appointment) {
+  function startEdit(appointment: Appointment, fromSearch = false) {
     setHoveredEvent(null);
     setShowSearch(false);
+    setResumeSearchAfterForm(fromSearch);
     setEditingId(appointment.id);
     setDraft({ ...appointment, scheduledAt: toLocalInputValue(appointment.scheduledAt) });
     setFormError("");
@@ -380,7 +387,7 @@ export function AgendaClient({ email }: { email: string }) {
           <p className="search-count">{searchLoading ? "Buscando..." : `${searchTotal} ${searchTotal === 1 ? "coleta encontrada" : "coletas encontradas"}`}</p>
           {searchError && <p className="state-message form-error" role="alert">{searchError}</p>}
           {!searchLoading && !searchError && searchResults.length === 0 && <p className="state-message">Nenhuma coleta encontrada.</p>}
-          {!searchLoading && !searchError && searchResults.length > 0 && <ul className="appointment-list search-results">{searchResults.map((item) => <li className="appointment-item" key={item.id}><div className="appointment-main"><strong>{item.animal}</strong><span>{item.clinic} · {item.examType}</span><span>{toDisplayDate(item.scheduledAt)}</span></div><div className="appointment-actions"><span className={`status status-${item.status.toLowerCase()}`}>{statusLabels[item.status]}</span><button className="icon-button" aria-label={`Editar ${item.animal}`} onClick={() => startEdit(item)} type="button"><Pencil size={16} /></button>{item.status !== "CANCELADO" && <button className="icon-button danger-button" aria-label={`Cancelar ${item.animal}`} disabled={pending} onClick={() => void cancelAppointment(item)} type="button"><XCircle size={16} /></button>}</div></li>)}</ul>}
+          {!searchLoading && !searchError && searchResults.length > 0 && <ul className="appointment-list search-results">{searchResults.map((item) => <li className="appointment-item" key={item.id}><div className="appointment-main"><strong>{item.animal}</strong><span>{item.clinic} · {item.examType}</span><span>{toDisplayDate(item.scheduledAt)}</span></div><div className="appointment-actions"><span className={`status status-${item.status.toLowerCase()}`}>{statusLabels[item.status]}</span><button className="icon-button" aria-label={`Editar ${item.animal}`} onClick={() => startEdit(item, true)} type="button"><Pencil size={16} /></button>{item.status !== "CANCELADO" && <button className="icon-button danger-button" aria-label={`Cancelar ${item.animal}`} disabled={pending} onClick={() => void cancelAppointment(item)} type="button"><XCircle size={16} /></button>}</div></li>)}</ul>}
           {searchTotal > 10 && <nav className="search-pagination" aria-label="Páginas da busca"><button className="secondary-button" disabled={searchPage === 1 || searchLoading} onClick={() => changeSearchPage(searchPage - 1)} type="button">Anterior</button><span>Página {searchPage} de {Math.ceil(searchTotal / 10)}</span><button className="secondary-button" disabled={searchPage >= Math.ceil(searchTotal / 10) || searchLoading} onClick={() => changeSearchPage(searchPage + 1)} type="button">Próxima</button></nav>}
         </section>
       </div>}
